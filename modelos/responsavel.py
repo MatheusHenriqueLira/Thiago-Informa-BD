@@ -1,4 +1,10 @@
-from banco import conectar 
+from banco import (
+    inserir_responsavel,
+    listar_responsaveis,
+    buscar_responsavel_por_id,
+    editar_responsavel,
+    excluir_responsavel,
+)
 
 class Responsavel:
     id_resp: int
@@ -10,49 +16,23 @@ class Responsavel:
 
     @staticmethod
     def cadastrar(nome: str) -> int:
-        with conectar() as conn:
-            cursor = conn.execute(
-                "INSERT INTO Responsavel (Nome) VALUES (?)",
-                (nome.strip(),)
-            )
-            conn.commit()
-            return cursor.lastrowid
+        return inserir_responsavel(nome)
 
     # Alias de compatibilidade
     cadastar = cadastrar
 
     @staticmethod
-    def listar_todos() -> list: 
-        with conectar() as conn:
-            cursor = conn.execute("SELECT idresp, Nome FROM Responsavel ORDER BY Nome")
-            return [dict(linha) for linha in cursor.fetchall()]
+    def listar_todos() -> list:
+        return listar_responsaveis()
 
     @staticmethod
     def buscar_por_id(id_resp: int) -> dict | None:
-        with conectar() as conn:
-            cursor = conn.execute(
-                "SELECT idresp, Nome FROM Responsavel WHERE idresp = ?",
-                (id_resp,)
-            )
-            linha = cursor.fetchone()
-            return dict(linha) if linha else None
+        return buscar_responsavel_por_id(id_resp)
 
     @staticmethod
     def editar(id_resp: int, novo_nome: str) -> bool:
-        with conectar() as conn:
-            cursor = conn.execute(
-                "UPDATE Responsavel SET Nome = ? WHERE idresp = ?",
-                (novo_nome.strip(), id_resp)
-            )
-            conn.commit()
-            return cursor.rowcount > 0
+        return editar_responsavel(id_resp, novo_nome)
 
     @staticmethod 
     def excluir(id_resp: int) -> bool:
-        with conectar() as conn:
-            cursor = conn.execute(
-                "DELETE FROM Responsavel WHERE idresp = ?",
-                (id_resp,)
-            )
-            conn.commit()
-            return cursor.rowcount > 0
+        return excluir_responsavel(id_resp)

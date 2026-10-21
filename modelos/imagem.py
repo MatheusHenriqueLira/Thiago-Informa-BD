@@ -1,7 +1,12 @@
 import shutil
 from pathlib import Path 
 from uuid import uuid4
-from banco import conectar, PASTA
+from banco import (
+    PASTA,
+    inserir_imagem,
+    buscar_imagem_por_id,
+    excluir_imagem,
+)
 
 PASTA_IMAGENS = PASTA / "imagens"
 
@@ -26,44 +31,27 @@ class Imagem:
         shutil.copy(origem, destino)
 
         caminho_relativo = f"imagens/{nome_unico}"
-
-        with conectar() as conn:
-            cursor = conn.execute(
-                "INSERT INTO Imagem (caminho) VALUES (?)",
-                (caminho_relativo,)
-            )
-            conn.commit()
-            return cursor.lastrowid
+        return inserir_imagem(caminho_relativo)
 
     # Alias de compatibilidade
     salvar_imagen = salvar_imagem
 
     @staticmethod
     def buscar_por_id(id_imagem: int) -> dict | None:
-        with conectar() as conn:
-            cursor = conn.execute(
-                "SELECT idImagem, caminho FROM Imagem WHERE idImagem = ?",
-                (id_imagem,)
-            )
-            linha = cursor.fetchone()
-            return dict(linha) if linha else None
+        return buscar_imagem_por_id(id_imagem)
 
     @staticmethod
     def excluir(id_imagem: int) -> bool:
-        img = Imagem.buscar_por_id(id_imagem)
+        img = buscar_imagem_por_id(id_imagem)
 
         if not img:
             return False
 
-        with conectar() as conn:
-            conn.execute(
-                "DELETE FROM Imagem WHERE idImagem = ?",
-                (id_imagem,)
-            )
-            conn.commit()
+        excluido = excluir_imagem(id_imagem)
 
-        caminho_fisico = PASTA / img["caminho"]
-        if caminho_fisico.exists():
-            caminho_fisico.unlink()
+        if excluido:
+            caminho_fisico = PASTA / img["caminho"]
+            if caminho_fisico.exists():
+                caminho_fisico.unlink()
 
-        return True
+        return excluido
