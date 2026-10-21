@@ -3,9 +3,8 @@ from getpass import getpass
 import os
 import sqlite3
 import questionary
-
+from modelos.admin import Admin
 CAMINHO_BANCO = Path(__file__).resolve().parent / "database" / "banco.db"
-
 
 def login():
     usuario = input("Login: ")
@@ -16,24 +15,26 @@ def login():
 
     try:
         # Verifica se é um administrador
-        admin = conexao.execute(
+        linha = conexao.execute(
             """
             SELECT idAdmin, Nome
             FROM Admin
-            WHERE Login = ? AND Senha = ?
+            WHERE Nome = ? AND Senha = ?
             """,
             (usuario, senha),
         ).fetchone()
 
-        if admin is not None:
-            return "admin", admin["idAdmin"]
+        if linha is not None:
+            admin = Admin(linha["idAdmin"], linha["Nome"])
+            return "admin", admin
+    
 
         # Se não for admin, verifica se é um responsável
         responsavel = conexao.execute(
             """
             SELECT idresp, Nome
             FROM Responsavel
-            WHERE Login = ? AND Senha = ?
+            WHERE Nome = ? AND Senha = ?
             """,
             (usuario, senha),
         ).fetchone()
@@ -95,9 +96,6 @@ def exibir_menu_responsavel():
 
     if opcao is None or opcao == "Sair":
         print("Ate logo!")
-    else:
-        print(f"Opcao selecionada: {opcao}")
-
 
 def main():
     resultado = login()
