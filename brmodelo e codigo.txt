@@ -1,0 +1,74 @@
+https://app.brmodeloweb.com/publicview/6a903fc47b168526fb118b9d
+
+CREATE TABLE Turma 
+( 
+ idturma INT PRIMARY KEY AUTO_INCREMENT,  
+ Nome VARCHAR,  
+); 
+
+CREATE TABLE Projeto 
+( 
+ Idpost INT PRIMARY KEY AUTO_INCREMENT,  
+ Imagem (x64) VARCHAR,  
+ datacriacao DATETIME,  
+ Titulo VARCHAR,  
+ Conteudo VARCHAR,  
+ idAdmin INT,  
+); 
+
+CREATE TABLE Informativos 
+( 
+ Idinfo INT PRIMARY KEY AUTO_INCREMENT,  
+ datacriacao DATETIME,  
+ Titulo VARCHAR,  
+ Conteudo VARCHAR,  
+ idAdmin INT,  
+ estafixado BOOLEAN,  
+ idImagem INT,  
+); 
+
+CREATE TABLE Responsavel 
+( 
+ idresp INT PRIMARY KEY AUTO_INCREMENT,  
+ Nome VARCHAR,  
+); 
+
+CREATE TABLE ResponsavelTurma 
+( 
+ idResponsavel INT,  
+ idTurma INT,  
+); 
+
+CREATE TABLE Admin 
+( 
+ Id INT PRIMARY KEY AUTO_INCREMENT,  
+ Nome VARCHAR,  
+); 
+
+CREATE TABLE Imagem 
+( 
+ x64 INT PRIMARY KEY,  
+); 
+
+CREATE TABLE ImgProjeto 
+( 
+ idImagem INT,  
+ idProjeto INT,  
+); 
+
+CREATE TABLE ProjetoTurma 
+( 
+ idProjeto INT,  
+ idTurma INT,  
+); 
+
+ALTER TABLE Projeto ADD FOREIGN KEY(idAdmin) REFERENCES Admin (idAdmin)
+ALTER TABLE Informativos ADD FOREIGN KEY(idAdmin) REFERENCES Admin (idAdmin)
+ALTER TABLE Informativos ADD FOREIGN KEY(idImagem) REFERENCES Imagem (idImagem)
+ALTER TABLE ResponsavelTurma ADD FOREIGN KEY(idResponsavel) REFERENCES Responsavel (idResponsavel)
+ALTER TABLE ResponsavelTurma ADD FOREIGN KEY(idTurma) REFERENCES Turma (idTurma)
+ALTER TABLE ImgProjeto ADD FOREIGN KEY(idImagem) REFERENCES Imagem (idImagem)
+ALTER TABLE ImgProjeto ADD FOREIGN KEY(idProjeto) REFERENCES Projeto (idProjeto)
+ALTER TABLE ProjetoTurma ADD FOREIGN KEY(idProjeto) REFERENCES Projeto (idProjeto)
+ALTER TABLE ProjetoTurma ADD FOREIGN KEY(idTurma) REFERENCES Turma (idTurma)
+
