@@ -2,7 +2,7 @@ PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS Turma (
     idturma INTEGER PRIMARY KEY AUTOINCREMENT,
-    Nome TEXT NOT NULL
+    Nome TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS Admin (
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS Responsavel (
 
 CREATE TABLE IF NOT EXISTS Imagem (
     idImagem INTEGER PRIMARY KEY AUTOINCREMENT,
-    x64 TEXT NOT NULL
+    caminho TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS Projeto (
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS Projeto (
     idAdmin INTEGER NOT NULL,
 
     FOREIGN KEY (idAdmin)
-        REFERENCES Admin(idAdmin)
+        REFERENCES Admin(idAdmin) ON DELETE CASCADE 
 );
 
 CREATE TABLE IF NOT EXISTS Informativos (
@@ -42,10 +42,10 @@ CREATE TABLE IF NOT EXISTS Informativos (
     idImagem INTEGER,
 
     FOREIGN KEY (idAdmin)
-        REFERENCES Admin(idAdmin),
+        REFERENCES Admin(idAdmin) ON DELETE CASCADE,
 
     FOREIGN KEY (idImagem)
-        REFERENCES Imagem(idImagem)
+        REFERENCES Imagem(idImagem) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS ResponsavelTurma (
@@ -55,10 +55,10 @@ CREATE TABLE IF NOT EXISTS ResponsavelTurma (
     PRIMARY KEY (idResponsavel, idTurma),
 
     FOREIGN KEY (idResponsavel)
-        REFERENCES Responsavel(idresp),
+        REFERENCES Responsavel(idresp) ON DELETE CASCADE,
 
     FOREIGN KEY (idTurma)
-        REFERENCES Turma(idturma)
+        REFERENCES Turma(idturma) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS ImgProjeto (
@@ -68,10 +68,10 @@ CREATE TABLE IF NOT EXISTS ImgProjeto (
     PRIMARY KEY (idImagem, idProjeto),
 
     FOREIGN KEY (idImagem)
-        REFERENCES Imagem(idImagem),
+        REFERENCES Imagem(idImagem) ON DELETE CASCADE,
 
     FOREIGN KEY (idProjeto)
-        REFERENCES Projeto(idProjeto)
+        REFERENCES Projeto(idProjeto) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS ProjetoTurma (
@@ -81,8 +81,8 @@ CREATE TABLE IF NOT EXISTS ProjetoTurma (
     PRIMARY KEY (idProjeto, idTurma),
 
     FOREIGN KEY (idProjeto)
-        REFERENCES Projeto(idProjeto),
+        REFERENCES Projeto(idProjeto) ON DELETE CASCADE,
 
     FOREIGN KEY (idTurma)
-        REFERENCES Turma(idturma)
+        REFERENCES Turma(idturma) ON DELETE CASCADE
 );
