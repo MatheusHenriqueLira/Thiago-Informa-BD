@@ -1,4 +1,3 @@
-
 import sqlite3
 from pathlib import Path
 
@@ -16,6 +15,48 @@ def criar_banco():
         script_sql = CAMINHO_SQL.read_text(encoding="utf-8")
         conexao.executescript(script_sql)
         print("Banco de dados criado com sucesso!")
+    finally:
+        conexao.close()
+
+
+def buscar_admin(login, senha):
+    conexao = sqlite3.connect(CAMINHO_BANCO)
+    conexao.row_factory = sqlite3.Row
+
+    try:
+        registro = conexao.execute(
+            """
+            SELECT idAdmin, Nome, Login, Senha
+            FROM Admin
+            WHERE Login = ? AND Senha = ?
+            """,
+            (login, senha),
+        ).fetchone()
+
+        if registro:
+            return dict(registro)
+        return None
+    finally:
+        conexao.close()
+
+
+def buscar_responsavel(login, senha):
+    conexao = sqlite3.connect(CAMINHO_BANCO)
+    conexao.row_factory = sqlite3.Row
+
+    try:
+        registro = conexao.execute(
+            """
+            SELECT idresp, Nome, Login, Senha
+            FROM Responsavel
+            WHERE Login = ? AND Senha = ?
+            """,
+            (login, senha),
+        ).fetchone()
+
+        if registro:
+            return dict(registro)
+        return None
     finally:
         conexao.close()
 

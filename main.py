@@ -1,66 +1,43 @@
 from pathlib import Path
 import os
-import sqlite3
 import questionary
 from modelos.admin import Admin
 from modelos.responsavel import Responsavel
-
-CAMINHO_BANCO = Path(__file__).resolve().parent / "database" / "banco.db"
+from banco import buscar_admin, buscar_responsavel
 
 def login():
     usuario = input("Login: ")
     senha = input("Senha: ")
 
-    conexao = sqlite3.connect(CAMINHO_BANCO)
-    conexao.row_factory = sqlite3.Row
+    # 1. Tenta autenticar como administrador
+    dados = buscar_admin(usuario, senha)
 
-    try:
-        # Verifica se é um administrador
-        linha_admin = conexao.execute(
-            """
-            SELECT idAdmin, Nome, Login, Senha
-            FROM Admin
-            WHERE Login = ? AND Senha = ?
-            """,
-            (usuario, senha),
-        ).fetchone()
+    if dados:
+        usuario_admin = Admin(
+            id_admin=dados["idAdmin"],
+            nome=dados["Nome"],
+            login=dados["Login"],
+            senha=dados["Senha"],
+        )
+        return "admin", usuario_admin
 
-        if linha_admin is not None:
-            admin = Admin(
-                id_admin=linha_admin["idAdmin"],
-                nome=linha_admin["Nome"],
-                login=linha_admin["Login"],
-                senha=linha_admin["Senha"],
-            )
-            return "admin", admin
+    # 2. Se não for admin, tenta autenticar como responsável
+    dados = buscar_responsavel(usuario, senha)
 
-        # Se não for admin, verifica se é um responsável
-        linha_resp = conexao.execute(
-            """
-            SELECT idresp, Nome, Login, Senha
-            FROM Responsavel
-            WHERE Login = ? AND Senha = ?
-            """,
-            (usuario, senha),
-        ).fetchone()
+    if dados:
+        usuario_resp = Responsavel(
+            id_resp=dados["idresp"],
+            nome=dados["Nome"],
+            login=dados["Login"],
+            senha=dados["Senha"],
+        )
+        return "responsavel", usuario_resp
 
-        if linha_resp is not None:
-            responsavel = Responsavel(
-                id_resp=linha_resp["idresp"],
-                nome=linha_resp["Nome"],
-                login=linha_resp["Login"],
-                senha=linha_resp["Senha"],
-            )
-            return "responsavel", responsavel
-
-        print("Login ou senha incorretos.")
-        return None
-
-    finally:
-        conexao.close()
+    print("Login ou senha incorretos.")
+    return None
 
 
-def exibir_menu_admin(admin: Admin):
+def exibir_menu_admin(usuario: Admin):
     os.system("cls" if os.name == "nt" else "clear")
     print(
         """
@@ -69,7 +46,7 @@ def exibir_menu_admin(admin: Admin):
 +-------------------------------------------------------------------------------------------+
 """
     )
-    print(f"Bem-vindo(a) ao sistema administrativo, {admin.nome}!")
+    print(f"Bem-vindo(a) ao sistema administrativo, {usuario.nome}!")
     opcao = questionary.select(
         "Use as setas para escolher:",
         choices=[
@@ -86,7 +63,7 @@ def exibir_menu_admin(admin: Admin):
     else:
         print(f"Opcao selecionada: {opcao}")
 
-def exibir_menu_responsavel(responsavel: Responsavel):
+def exibir_menu_responsavel(usuario: Responsavel):
     os.system("cls" if os.name == "nt" else "clear")
     print(
         """
@@ -95,7 +72,7 @@ def exibir_menu_responsavel(responsavel: Responsavel):
 +-------------------------------------------------------------------------------------------+
 """
     )
-    print(f"Bem-vindo(a) ao sistema, {responsavel.nome}!")
+    print(f"Bem-vindo(a) ao sistema, {usuario.nome}!")
     opcao = questionary.select(
         "Use as setas para escolher:",
         choices=[
@@ -117,10 +94,8 @@ def main():
     tipo, usuario_logado = resultado
 
     if tipo == "admin":
-        print("Entrando no menu administrativo...")
         exibir_menu_admin(usuario_logado)
     else:
-        print("Entrando no menu do responsável...")
         exibir_menu_responsavel(usuario_logado)
 
 
