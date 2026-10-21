@@ -29,6 +29,48 @@ def criar_banco():
 
 
 # ==============================================================================
+# Operações SQL - Autenticação (Admin e Responsavel)
+# ==============================================================================
+
+def buscar_admin(login, senha):
+    conexao = conectar()
+    try:
+        registro = conexao.execute(
+            """
+            SELECT idAdmin, Nome, Login, Senha
+            FROM Admin
+            WHERE Login = ? AND Senha = ?
+            """,
+            (login, senha),
+        ).fetchone()
+
+        if registro:
+            return dict(registro)
+        return None
+    finally:
+        conexao.close()
+
+
+def buscar_responsavel(login, senha):
+    conexao = conectar()
+    try:
+        registro = conexao.execute(
+            """
+            SELECT idresp, Nome, Login, Senha
+            FROM Responsavel
+            WHERE Login = ? AND Senha = ?
+            """,
+            (login, senha),
+        ).fetchone()
+
+        if registro:
+            return dict(registro)
+        return None
+    finally:
+        conexao.close()
+
+
+# ==============================================================================
 # Operações SQL - Turma
 # ==============================================================================
 
@@ -87,12 +129,14 @@ def excluir_turma(id_turma: int) -> bool:
 # Operações SQL - Responsavel
 # ==============================================================================
 
-def inserir_responsavel(nome: str) -> int:
+def inserir_responsavel(nome: str, login: str = None, senha: str = "1234") -> int:
     """Insere um novo responsável e retorna o idresp gerado."""
+    nome_limpo = nome.strip()
+    login_final = login.strip() if login else nome_limpo
     with conectar() as conn:
         cursor = conn.execute(
-            "INSERT INTO Responsavel (Nome) VALUES (?)",
-            (nome.strip(),)
+            "INSERT INTO Responsavel (Nome, Login, Senha) VALUES (?, ?, ?)",
+            (nome_limpo, login_final, senha)
         )
         conn.commit()
         return cursor.lastrowid
@@ -101,7 +145,7 @@ def inserir_responsavel(nome: str) -> int:
 def listar_responsaveis() -> list[dict]:
     """Retorna todos os responsáveis cadastrados em ordem alfabética."""
     with conectar() as conn:
-        cursor = conn.execute("SELECT idresp, Nome FROM Responsavel ORDER BY Nome")
+        cursor = conn.execute("SELECT idresp, Nome, Login, Senha FROM Responsavel ORDER BY Nome")
         return [dict(linha) for linha in cursor.fetchall()]
 
 
@@ -109,7 +153,7 @@ def buscar_responsavel_por_id(id_resp: int) -> dict | None:
     """Busca um responsável pelo ID."""
     with conectar() as conn:
         cursor = conn.execute(
-            "SELECT idresp, Nome FROM Responsavel WHERE idresp = ?",
+            "SELECT idresp, Nome, Login, Senha FROM Responsavel WHERE idresp = ?",
             (id_resp,)
         )
         linha = cursor.fetchone()
@@ -191,7 +235,7 @@ def inserir_imagem(caminho_relativo: str) -> int:
     """Insere o caminho de uma imagem no banco e retorna o idImagem gerado."""
     with conectar() as conn:
         cursor = conn.execute(
-            "INSERT INTO Imagem (caminho) VALUES (?)",
+            "INSERT INTO Imagem (Caminho) VALUES (?)",
             (caminho_relativo,)
         )
         conn.commit()
@@ -202,7 +246,7 @@ def buscar_imagem_por_id(id_imagem: int) -> dict | None:
     """Busca uma imagem pelo ID."""
     with conectar() as conn:
         cursor = conn.execute(
-            "SELECT idImagem, caminho FROM Imagem WHERE idImagem = ?",
+            "SELECT idImagem, Caminho AS caminho FROM Imagem WHERE idImagem = ?",
             (id_imagem,)
         )
         linha = cursor.fetchone()

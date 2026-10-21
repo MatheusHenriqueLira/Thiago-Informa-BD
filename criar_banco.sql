@@ -7,17 +7,21 @@ CREATE TABLE IF NOT EXISTS Turma (
 
 CREATE TABLE IF NOT EXISTS Admin (
     idAdmin INTEGER PRIMARY KEY AUTOINCREMENT,
-    Nome TEXT NOT NULL
+    Nome TEXT NOT NULL,
+    Login TEXT NOT NULL UNIQUE,
+    Senha TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS Responsavel (
     idresp INTEGER PRIMARY KEY AUTOINCREMENT,
-    Nome TEXT NOT NULL
+    Nome TEXT NOT NULL,
+    Login TEXT NOT NULL UNIQUE,
+    Senha TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS Imagem (
     idImagem INTEGER PRIMARY KEY AUTOINCREMENT,
-    caminho TEXT NOT NULL
+    Caminho TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS Projeto (
@@ -28,7 +32,7 @@ CREATE TABLE IF NOT EXISTS Projeto (
     idAdmin INTEGER NOT NULL,
 
     FOREIGN KEY (idAdmin)
-        REFERENCES Admin(idAdmin) ON DELETE CASCADE 
+        REFERENCES Admin(idAdmin) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS Informativos (
@@ -43,7 +47,6 @@ CREATE TABLE IF NOT EXISTS Informativos (
 
     FOREIGN KEY (idAdmin)
         REFERENCES Admin(idAdmin) ON DELETE CASCADE,
-
     FOREIGN KEY (idImagem)
         REFERENCES Imagem(idImagem) ON DELETE SET NULL
 );
@@ -53,10 +56,8 @@ CREATE TABLE IF NOT EXISTS ResponsavelTurma (
     idTurma INTEGER,
 
     PRIMARY KEY (idResponsavel, idTurma),
-
     FOREIGN KEY (idResponsavel)
         REFERENCES Responsavel(idresp) ON DELETE CASCADE,
-
     FOREIGN KEY (idTurma)
         REFERENCES Turma(idturma) ON DELETE CASCADE
 );
@@ -66,10 +67,8 @@ CREATE TABLE IF NOT EXISTS ImgProjeto (
     idProjeto INTEGER,
 
     PRIMARY KEY (idImagem, idProjeto),
-
     FOREIGN KEY (idImagem)
         REFERENCES Imagem(idImagem) ON DELETE CASCADE,
-
     FOREIGN KEY (idProjeto)
         REFERENCES Projeto(idProjeto) ON DELETE CASCADE
 );
@@ -79,10 +78,20 @@ CREATE TABLE IF NOT EXISTS ProjetoTurma (
     idTurma INTEGER,
 
     PRIMARY KEY (idProjeto, idTurma),
-
     FOREIGN KEY (idProjeto)
         REFERENCES Projeto(idProjeto) ON DELETE CASCADE,
-
     FOREIGN KEY (idTurma)
         REFERENCES Turma(idturma) ON DELETE CASCADE
+);
+
+INSERT INTO Admin (Nome, Login, Senha)
+SELECT 'Catia', 'Catia', '1234'
+WHERE NOT EXISTS (
+    SELECT 1 FROM Admin WHERE Login = 'Catia'
+);
+
+INSERT INTO Responsavel (Nome, Login, Senha)
+SELECT 'Responsavel Teste', 'pais', '1234'
+WHERE NOT EXISTS (
+    SELECT 1 FROM Responsavel WHERE Login = 'pais'
 );
