@@ -33,7 +33,6 @@ class Imagem:
         caminho_relativo = f"imagens/{nome_unico}"
         return inserir_imagem(caminho_relativo)
 
-    # Alias de compatibilidade
     salvar_imagen = salvar_imagem
 
     @staticmethod
