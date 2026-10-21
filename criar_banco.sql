@@ -88,3 +88,9 @@ CREATE TABLE IF NOT EXISTS ProjetoTurma (
     FOREIGN KEY (idTurma)
         REFERENCES Turma(idturma)
 );
+
+INSERT INTO Admin (Nome, Senha)
+SELECT 'Catia', '1234'
+WHERE NOT EXISTS (
+    SELECT 1 FROM Admin
+);
