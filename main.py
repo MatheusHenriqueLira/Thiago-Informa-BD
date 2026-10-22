@@ -1,40 +1,19 @@
-from pathlib import Path
 import os
 import questionary
 from modelos.admin import Admin
 from modelos.responsavel import Responsavel
-from banco import buscar_admin, buscar_responsavel
+from controladoras import (
+    ControladoraAutenticacao,
+    ControladoraInformativo,
+    ControladoraProjetos,
+    ControladoraTurma,
+    ControladoraResponsavel,
+)
+
 
 def login():
-    usuario = input("Login: ")
-    senha = input("Senha: ")
-
-    # 1. Tenta autenticar como administrador
-    dados = buscar_admin(usuario, senha)
-
-    if dados:
-        usuario_admin = Admin(
-            id_admin=dados["idAdmin"],
-            nome=dados["Nome"],
-            login=dados["Login"],
-            senha=dados["Senha"],
-        )
-        return "admin", usuario_admin
-
-    # 2. Se não for admin, tenta autenticar como responsável
-    dados = buscar_responsavel(usuario, senha)
-
-    if dados:
-        usuario_resp = Responsavel(
-            id_resp=dados["idresp"],
-            nome=dados["Nome"],
-            login=dados["Login"],
-            senha=dados["Senha"],
-        )
-        return "responsavel", usuario_resp
-
-    print("Login ou senha incorretos.")
-    return None
+    auth = ControladoraAutenticacao.obter_instancia()
+    return auth.executar_login()
 
 
 def exibir_menu_admin(usuario: Admin):
@@ -63,6 +42,7 @@ def exibir_menu_admin(usuario: Admin):
     else:
         print(f"Opcao selecionada: {opcao}")
 
+
 def exibir_menu_responsavel(usuario: Responsavel):
     os.system("cls" if os.name == "nt" else "clear")
     print(
@@ -84,6 +64,9 @@ def exibir_menu_responsavel(usuario: Responsavel):
 
     if opcao is None or opcao == "Sair":
         print("Ate logo!")
+    else:
+        print(f"Opcao selecionada: {opcao}")
+
 
 def main():
     resultado = login()
