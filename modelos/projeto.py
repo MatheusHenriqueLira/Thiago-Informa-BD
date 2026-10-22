@@ -1,5 +1,8 @@
 class Projeto:
 
+#essa classe é a ficha cadastral, o molde do projeto.
+#ela serve pra empacotar todas as informações de um projeto em um único lugar organizado e garante que um projeto so vai ser valido se tiver um titulo preenchido e um administrador responsável
+    
     def __init__(
         self,
         id_projeto=None,
