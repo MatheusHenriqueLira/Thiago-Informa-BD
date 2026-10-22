@@ -45,76 +45,6 @@ def buscar_admin(login, senha):
         ).fetchone()
         return dict(registro) if registro else None
 
-
-def inserir_admin(nome, login, senha):
-    """Insere um novo administrador e retorna o idAdmin gerado."""
-    try:
-        with conectar() as conn:
-            cursor = conn.execute(
-                "INSERT INTO Admin (Nome, Login, Senha) VALUES (?, ?, ?)",
-                (nome.strip(), login.strip(), senha),
-            )
-            conn.commit()
-            return cursor.lastrowid
-    except sqlite3.IntegrityError:
-        return None
-
-
-def listar_admins():
-    """Retorna todos os administradores cadastrados."""
-    with conectar() as conn:
-        cursor = conn.execute("SELECT idAdmin, Nome, Login, Senha FROM Admin ORDER BY Nome")
-        return [dict(linha) for linha in cursor.fetchall()]
-
-
-def buscar_admin_por_id(id_admin):
-    """Busca um administrador pelo ID."""
-    with conectar() as conn:
-        linha = conn.execute(
-            "SELECT idAdmin, Nome, Login, Senha FROM Admin WHERE idAdmin = ?",
-            (id_admin,),
-        ).fetchone()
-        return dict(linha) if linha else None
-
-
-def editar_admin(id_admin, novo_nome=None, novo_login=None, nova_senha=None):
-    """Atualiza os dados de um administrador."""
-    atualizacoes = []
-    parametros = []
-
-    if novo_nome:
-        atualizacoes.append("Nome = ?")
-        parametros.append(novo_nome.strip())
-    if novo_login:
-        atualizacoes.append("Login = ?")
-        parametros.append(novo_login.strip())
-    if nova_senha:
-        atualizacoes.append("Senha = ?")
-        parametros.append(nova_senha)
-
-    if not atualizacoes:
-        return False
-
-    parametros.append(id_admin)
-    sql = f"UPDATE Admin SET {', '.join(atualizacoes)} WHERE idAdmin = ?"
-
-    try:
-        with conectar() as conn:
-            cursor = conn.execute(sql, tuple(parametros))
-            conn.commit()
-            return cursor.rowcount > 0
-    except sqlite3.IntegrityError:
-        return False
-
-
-def excluir_admin(id_admin):
-    """Remove um administrador pelo ID."""
-    with conectar() as conn:
-        cursor = conn.execute("DELETE FROM Admin WHERE idAdmin = ?", (id_admin,))
-        conn.commit()
-        return cursor.rowcount > 0
-
-
 # ==============================================================================
 # Operações SQL - Responsavel
 # ==============================================================================
@@ -270,7 +200,7 @@ def excluir_turma(id_turma):
 
 
 # ==============================================================================
-# Operações SQL - ResponsavelTurma (Vínculo N:N)
+# Operações SQL - ResponsavelTurma
 # ==============================================================================
 
 def vincular_responsavel_turma(id_responsavel, id_turma):
@@ -579,7 +509,7 @@ def excluir_projeto(id_projeto):
 
 
 # ==============================================================================
-# Operações SQL - ImgProjeto (Vínculo N:N entre Imagem e Projeto)
+# Operações SQL - ImgProjeto 
 # ==============================================================================
 
 def vincular_imagem_projeto(id_imagem, id_projeto):
@@ -623,7 +553,7 @@ def listar_imagens_do_projeto(id_projeto):
 
 
 # ==============================================================================
-# Operações SQL - ProjetoTurma (Vínculo N:N entre Projeto e Turma)
+# Operações SQL - ProjetoTurma
 # ==============================================================================
 
 def vincular_projeto_turma(id_projeto, id_turma):
