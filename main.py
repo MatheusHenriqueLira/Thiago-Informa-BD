@@ -16,7 +16,7 @@ def login():
     return auth.executar_login()
 
 
-def exibir_menu_admin(usuario: Admin):
+def exibir_menu_admin(usuario):
     os.system("cls" if os.name == "nt" else "clear")
     print(
         """
@@ -43,7 +43,7 @@ def exibir_menu_admin(usuario: Admin):
         print(f"Opcao selecionada: {opcao}")
 
 
-def exibir_menu_responsavel(usuario: Responsavel):
+def exibir_menu_responsavel(usuario):
     os.system("cls" if os.name == "nt" else "clear")
     print(
         """

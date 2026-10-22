@@ -10,15 +10,17 @@ from banco import (
 )
 from modelos.turma import Turma
 from modelos.responsavel_turma import ResponsavelTurma
+from serializadores.serializador_turma import SerializadorTurma
+from serializadores.serializador_responsavel_turma import SerializadorResponsavelTurma
 
 
 class ControladoraTurma:
     @staticmethod
-    def obter_input(mensagem: str = "Digite o valor: ") -> str:
+    def obter_input(mensagem="Digite o valor: "):
         return input(mensagem).strip()
 
     @classmethod
-    def cadastrar_turma(cls, nome: str = None) -> Turma | None:
+    def cadastrar_turma(cls, nome=None):
         if nome is None:
             nome = cls.obter_input("Nome da turma: ")
 
@@ -27,15 +29,15 @@ class ControladoraTurma:
             print("O nome da turma é obrigatório.")
             return None
 
-        dados = nova_turma.serializar()
+        dados = SerializadorTurma.serializar(nova_turma)
         id_turma = inserir_turma(dados["Nome"])
         print("Turma cadastrada com sucesso!")
-        return Turma.desserializar(buscar_turma_por_id(id_turma))
+        return SerializadorTurma.desserializar(buscar_turma_por_id(id_turma))
 
     @staticmethod
-    def listar_turmas() -> list[Turma]:
+    def listar_turmas():
         linhas = listar_turmas()
-        turmas = [Turma.desserializar(linha) for linha in linhas]
+        turmas = [SerializadorTurma.desserializar(linha) for linha in linhas]
 
         print("\n--- LISTA DE TURMAS ---")
         if not turmas:
@@ -46,7 +48,7 @@ class ControladoraTurma:
         return turmas
 
     @classmethod
-    def editar_turma(cls, id_turma: int, novo_nome: str = None) -> Turma | None:
+    def editar_turma(cls, id_turma, novo_nome=None):
         if novo_nome is None:
             novo_nome = cls.obter_input("Novo nome da turma: ")
         if not novo_nome:
@@ -58,10 +60,10 @@ class ControladoraTurma:
         else:
             print("Turma não encontrada.")
 
-        return Turma.desserializar(buscar_turma_por_id(id_turma))
+        return SerializadorTurma.desserializar(buscar_turma_por_id(id_turma))
 
     @staticmethod
-    def excluir_turma(id_turma: int) -> bool:
+    def excluir_turma(id_turma):
         excluida = excluir_turma(id_turma)
         if excluida:
             print(f"Turma {id_turma} excluída.")
@@ -70,15 +72,17 @@ class ControladoraTurma:
         return excluida
 
     @staticmethod
-    def vincular_responsavel(id_responsavel: int, id_turma: int) -> bool:
-        vinculo = ResponsavelTurma(id_responsavel=id_responsavel, id_turma=id_turma).serializar()
+    def vincular_responsavel(id_responsavel, id_turma):
+        vinculo = SerializadorResponsavelTurma.serializar(
+            ResponsavelTurma(id_responsavel=id_responsavel, id_turma=id_turma)
+        )
         return vincular_responsavel_turma(vinculo["idResponsavel"], vinculo["idTurma"])
 
     @staticmethod
-    def desvincular_responsavel(id_responsavel: int, id_turma: int) -> bool:
+    def desvincular_responsavel(id_responsavel, id_turma):
         return desvincular_responsavel_turma(id_responsavel, id_turma)
 
     @staticmethod
-    def listar_turmas_do_responsavel(id_responsavel: int) -> list[Turma]:
+    def listar_turmas_do_responsavel(id_responsavel):
         linhas = listar_turmas_do_responsavel(id_responsavel)
-        return [Turma.desserializar(linha) for linha in linhas]
+        return [SerializadorTurma.desserializar(linha) for linha in linhas]

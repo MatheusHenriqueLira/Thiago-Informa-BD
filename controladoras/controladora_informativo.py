@@ -7,25 +7,26 @@ from banco import (
     excluir_informativo,
 )
 from modelos.informativo import Informativo
+from serializadores.serializador_informativo import SerializadorInformativo
 from controladoras.controladora_imagem import ControladoraImagem
 
 
 class ControladoraInformativo:
-    def __init__(self, conta_logada: bool = True):
+    def __init__(self, conta_logada=True):
         self.conta_logada = conta_logada
 
     @staticmethod
-    def obter_input(mensagem: str = "Digite o valor: ") -> str:
+    def obter_input(mensagem="Digite o valor: "):
         return input(mensagem).strip()
 
     @classmethod
     def cadastrar_informativo(
         cls,
-        id_admin: int,
-        titulo: str = None,
-        conteudo: str = None,
-        usar_dialogo_imagem: bool = True,
-    ) -> Informativo | None:
+        id_admin,
+        titulo=None,
+        conteudo=None,
+        usar_dialogo_imagem=True,
+    ):
         if titulo is None:
             titulo = cls.obter_input("Título do informativo: ")
         if conteudo is None:
@@ -50,7 +51,7 @@ class ControladoraInformativo:
             print("Dados inválidos: o título e o administrador são obrigatórios.")
             return None
 
-        dados = novo_info.serializar()
+        dados = SerializadorInformativo.serializar(novo_info)
         id_gerado = inserir_informativo(
             titulo=dados["Titulo"],
             conteudo=dados["Conteudo"],
@@ -59,12 +60,12 @@ class ControladoraInformativo:
             id_imagem=dados["idImagem"],
         )
         print("Informativo cadastrado com sucesso!")
-        return Informativo.desserializar(buscar_informativo_por_id(id_gerado))
+        return SerializadorInformativo.desserializar(buscar_informativo_por_id(id_gerado))
 
     @staticmethod
-    def listar_informativos() -> list[Informativo]:
+    def listar_informativos():
         linhas = listar_informativos()
-        lista_objetos = [Informativo.desserializar(linha) for linha in linhas]
+        lista_objetos = [SerializadorInformativo.desserializar(linha) for linha in linhas]
 
         print("\n--- LISTA DE INFORMATIVOS ---")
         if not lista_objetos:
@@ -77,7 +78,7 @@ class ControladoraInformativo:
         return lista_objetos
 
     @classmethod
-    def editar_informativo(cls, id_info: int, novo_titulo: str = None, novo_conteudo: str = None) -> Informativo | None:
+    def editar_informativo(cls, id_info, novo_titulo=None, novo_conteudo=None):
         if novo_titulo is None:
             novo_titulo = cls.obter_input("Digite o novo título (deixe em branco para manter): ")
         if novo_conteudo is None:
@@ -93,10 +94,10 @@ class ControladoraInformativo:
         else:
             print("Nenhuma alteração realizada ou informativo não encontrado.")
 
-        return Informativo.desserializar(buscar_informativo_por_id(id_info))
+        return SerializadorInformativo.desserializar(buscar_informativo_por_id(id_info))
 
     @staticmethod
-    def alterar_fixado(id_info: int) -> bool | None:
+    def alterar_fixado(id_info):
         novo_status = alterar_fixado_informativo(id_info)
         if novo_status is None:
             print("Informativo não encontrado.")
@@ -106,13 +107,13 @@ class ControladoraInformativo:
         return novo_status
 
     @staticmethod
-    def del_informativo(id_info: int) -> bool:
+    def del_informativo(id_info):
         dados = buscar_informativo_por_id(id_info)
         if not dados:
             print("Informativo não encontrado.")
             return False
 
-        info_obj = Informativo.desserializar(dados)
+        info_obj = SerializadorInformativo.desserializar(dados)
         excluido = excluir_informativo(id_info)
 
         if excluido and info_obj.id_imagem is not None:

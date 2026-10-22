@@ -9,15 +9,17 @@ from banco import (
 )
 from modelos.responsavel import Responsavel
 from modelos.responsavel_turma import ResponsavelTurma
+from serializadores.serializador_responsavel import SerializadorResponsavel
+from serializadores.serializador_responsavel_turma import SerializadorResponsavelTurma
 
 
 class ControladoraResponsavel:
     @staticmethod
-    def obter_input(mensagem: str = "Digite o valor: ") -> str:
+    def obter_input(mensagem="Digite o valor: "):
         return input(mensagem).strip()
 
     @classmethod
-    def cadastrar_responsavel(cls, nome: str = None, login: str = None, senha: str = None) -> Responsavel | None:
+    def cadastrar_responsavel(cls, nome=None, login=None, senha=None):
         if nome is None:
             nome = cls.obter_input("Nome do responsável: ")
         if login is None:
@@ -30,15 +32,15 @@ class ControladoraResponsavel:
             print("Dados inválidos: nome, login e senha são obrigatórios.")
             return None
 
-        dados = novo_resp.serializar()
+        dados = SerializadorResponsavel.serializar(novo_resp)
         id_resp = inserir_responsavel(nome=dados["Nome"], login=dados["Login"], senha=dados["Senha"])
         print("Responsável cadastrado com sucesso!")
-        return Responsavel.desserializar(buscar_responsavel_por_id(id_resp))
+        return SerializadorResponsavel.desserializar(buscar_responsavel_por_id(id_resp))
 
     @staticmethod
-    def listar_responsaveis() -> list[Responsavel]:
+    def listar_responsaveis():
         linhas = listar_responsaveis()
-        responsaveis = [Responsavel.desserializar(linha) for linha in linhas]
+        responsaveis = [SerializadorResponsavel.desserializar(linha) for linha in linhas]
 
         print("\n--- LISTA DE RESPONSÁVEIS ---")
         if not responsaveis:
@@ -51,11 +53,11 @@ class ControladoraResponsavel:
     @classmethod
     def editar_responsavel(
         cls,
-        id_resp: int,
-        novo_nome: str = None,
-        novo_login: str = None,
-        nova_senha: str = None,
-    ) -> Responsavel | None:
+        id_resp,
+        novo_nome=None,
+        novo_login=None,
+        nova_senha=None,
+    ):
         if novo_nome is None:
             novo_nome = cls.obter_input("Novo nome (em branco para manter): ")
         if novo_login is None:
@@ -74,10 +76,10 @@ class ControladoraResponsavel:
         else:
             print("Nenhuma alteração realizada ou responsável não encontrado.")
 
-        return Responsavel.desserializar(buscar_responsavel_por_id(id_resp))
+        return SerializadorResponsavel.desserializar(buscar_responsavel_por_id(id_resp))
 
     @staticmethod
-    def excluir_responsavel(id_resp: int) -> bool:
+    def excluir_responsavel(id_resp):
         excluido = excluir_responsavel(id_resp)
         if excluido:
             print(f"Responsável {id_resp} excluído.")
@@ -86,10 +88,12 @@ class ControladoraResponsavel:
         return excluido
 
     @staticmethod
-    def vincular_turma(id_resp: int, id_turma: int) -> bool:
-        vinculo = ResponsavelTurma(id_responsavel=id_resp, id_turma=id_turma).serializar()
+    def vincular_turma(id_resp, id_turma):
+        vinculo = SerializadorResponsavelTurma.serializar(
+            ResponsavelTurma(id_responsavel=id_resp, id_turma=id_turma)
+        )
         return vincular_responsavel_turma(vinculo["idResponsavel"], vinculo["idTurma"])
 
     @staticmethod
-    def desvincular_turma(id_resp: int, id_turma: int) -> bool:
+    def desvincular_turma(id_resp, id_turma):
         return desvincular_responsavel_turma(id_resp, id_turma)

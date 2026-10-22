@@ -13,26 +13,29 @@ from banco import (
 from modelos.projeto import Projeto
 from modelos.img_projeto import ImgProjeto
 from modelos.projeto_turma import ProjetoTurma
+from serializadores.serializador_projeto import SerializadorProjeto
+from serializadores.serializador_img_projeto import SerializadorImgProjeto
+from serializadores.serializador_projeto_turma import SerializadorProjetoTurma
 from controladoras.controladora_imagem import ControladoraImagem
 
 
 class ControladoraProjetos:
-    def __init__(self, conta_logada: bool = True):
+    def __init__(self, conta_logada=True):
         self.conta_logada = conta_logada
 
     @staticmethod
-    def obter_input(mensagem: str = "Digite o valor: ") -> str:
+    def obter_input(mensagem="Digite o valor: "):
         return input(mensagem).strip()
 
     @classmethod
     def criar_projeto(
         cls,
-        id_admin: int,
-        titulo: str = None,
-        conteudo: str = None,
-        id_turma: int = None,
-        caminho_imagem: str = None,
-    ) -> Projeto | None:
+        id_admin,
+        titulo=None,
+        conteudo=None,
+        id_turma=None,
+        caminho_imagem=None,
+    ):
         if titulo is None:
             titulo = cls.obter_input("Título do projeto: ")
         if conteudo is None:
@@ -43,7 +46,7 @@ class ControladoraProjetos:
             print("Dados inválidos: o título do projeto e o administrador são obrigatórios.")
             return None
 
-        dados = novo_projeto.serializar()
+        dados = SerializadorProjeto.serializar(novo_projeto)
         id_projeto = inserir_projeto(
             titulo=dados["Titulo"],
             conteudo=dados["Conteudo"],
@@ -51,25 +54,29 @@ class ControladoraProjetos:
         )
 
         if id_turma is not None:
-            vinculo_turma = ProjetoTurma(id_projeto=id_projeto, id_turma=id_turma).serializar()
+            vinculo_turma = SerializadorProjetoTurma.serializar(
+                ProjetoTurma(id_projeto=id_projeto, id_turma=id_turma)
+            )
             vincular_projeto_turma(vinculo_turma["idProjeto"], vinculo_turma["idTurma"])
 
         if caminho_imagem:
             img = ControladoraImagem.salvar_imagem(caminho_imagem)
-            vinculo_img = ImgProjeto(id_imagem=img.id_imagem, id_projeto=id_projeto).serializar()
+            vinculo_img = SerializadorImgProjeto.serializar(
+                ImgProjeto(id_imagem=img.id_imagem, id_projeto=id_projeto)
+            )
             vincular_imagem_projeto(vinculo_img["idImagem"], vinculo_img["idProjeto"])
 
         print("Projeto cadastrado com sucesso!")
-        return Projeto.desserializar(buscar_projeto_por_id(id_projeto))
+        return SerializadorProjeto.desserializar(buscar_projeto_por_id(id_projeto))
 
     @staticmethod
-    def listar_projetos(id_turma: int = None) -> list[Projeto]:
+    def listar_projetos(id_turma=None):
         if id_turma is not None:
             linhas = listar_projetos_da_turma(id_turma)
         else:
             linhas = listar_projetos()
 
-        objetos = [Projeto.desserializar(linha) for linha in linhas]
+        objetos = [SerializadorProjeto.desserializar(linha) for linha in linhas]
 
         print("\n--- LISTA DE PROJETOS ---")
         if not objetos:
@@ -81,7 +88,7 @@ class ControladoraProjetos:
         return objetos
 
     @classmethod
-    def editar_projeto(cls, id_projeto: int, novo_titulo: str = None, novo_conteudo: str = None) -> Projeto | None:
+    def editar_projeto(cls, id_projeto, novo_titulo=None, novo_conteudo=None):
         if novo_titulo is None:
             novo_titulo = cls.obter_input("Novo título do projeto (em branco para manter): ")
         if novo_conteudo is None:
@@ -97,10 +104,10 @@ class ControladoraProjetos:
         else:
             print("Nenhuma alteração realizada ou projeto não encontrado.")
 
-        return Projeto.desserializar(buscar_projeto_por_id(id_projeto))
+        return SerializadorProjeto.desserializar(buscar_projeto_por_id(id_projeto))
 
     @staticmethod
-    def del_projeto(id_projeto: int) -> bool:
+    def del_projeto(id_projeto):
         imagens = listar_imagens_do_projeto(id_projeto)
         excluido = excluir_projeto(id_projeto)
 
@@ -113,10 +120,10 @@ class ControladoraProjetos:
         return excluido
 
     @staticmethod
-    def vincular_turma(id_projeto: int, id_turma: int) -> bool:
-        vinculo = ProjetoTurma(id_projeto=id_projeto, id_turma=id_turma).serializar()
+    def vincular_turma(id_projeto, id_turma):
+        vinculo = SerializadorProjetoTurma.serializar(ProjetoTurma(id_projeto=id_projeto, id_turma=id_turma))
         return vincular_projeto_turma(vinculo["idProjeto"], vinculo["idTurma"])
 
     @staticmethod
-    def desvincular_turma(id_projeto: int, id_turma: int) -> bool:
+    def desvincular_turma(id_projeto, id_turma):
         return desvincular_projeto_turma(id_projeto, id_turma)

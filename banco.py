@@ -7,7 +7,7 @@ CAMINHO_BANCO = PASTA / "database" / "banco.db"
 CAMINHO_SQL = PASTA / "criar_banco.sql"
 
 
-def conectar() -> sqlite3.Connection:
+def conectar():
     """Abre conexão com o banco SQLite garantindo que as Foreign Keys estejam ativas."""
     CAMINHO_BANCO.parent.mkdir(parents=True, exist_ok=True)
     conexao = sqlite3.connect(CAMINHO_BANCO)
@@ -32,7 +32,7 @@ def criar_banco():
 # Operações SQL - Admin
 # ==============================================================================
 
-def buscar_admin(login: str, senha: str) -> dict | None:
+def buscar_admin(login, senha):
     """Busca um administrador pelo login e senha para autenticação."""
     with conectar() as conn:
         registro = conn.execute(
@@ -46,7 +46,7 @@ def buscar_admin(login: str, senha: str) -> dict | None:
         return dict(registro) if registro else None
 
 
-def inserir_admin(nome: str, login: str, senha: str) -> int:
+def inserir_admin(nome, login, senha):
     """Insere um novo administrador e retorna o idAdmin gerado."""
     with conectar() as conn:
         cursor = conn.execute(
@@ -57,14 +57,14 @@ def inserir_admin(nome: str, login: str, senha: str) -> int:
         return cursor.lastrowid
 
 
-def listar_admins() -> list[dict]:
+def listar_admins():
     """Retorna todos os administradores cadastrados."""
     with conectar() as conn:
         cursor = conn.execute("SELECT idAdmin, Nome, Login, Senha FROM Admin ORDER BY Nome")
         return [dict(linha) for linha in cursor.fetchall()]
 
 
-def buscar_admin_por_id(id_admin: int) -> dict | None:
+def buscar_admin_por_id(id_admin):
     """Busca um administrador pelo ID."""
     with conectar() as conn:
         linha = conn.execute(
@@ -74,7 +74,7 @@ def buscar_admin_por_id(id_admin: int) -> dict | None:
         return dict(linha) if linha else None
 
 
-def editar_admin(id_admin: int, novo_nome: str = None, novo_login: str = None, nova_senha: str = None) -> bool:
+def editar_admin(id_admin, novo_nome=None, novo_login=None, nova_senha=None):
     """Atualiza os dados de um administrador."""
     atualizacoes = []
     parametros = []
@@ -101,7 +101,7 @@ def editar_admin(id_admin: int, novo_nome: str = None, novo_login: str = None, n
         return cursor.rowcount > 0
 
 
-def excluir_admin(id_admin: int) -> bool:
+def excluir_admin(id_admin):
     """Remove um administrador pelo ID."""
     with conectar() as conn:
         cursor = conn.execute("DELETE FROM Admin WHERE idAdmin = ?", (id_admin,))
@@ -113,7 +113,7 @@ def excluir_admin(id_admin: int) -> bool:
 # Operações SQL - Responsavel
 # ==============================================================================
 
-def buscar_responsavel(login: str, senha: str) -> dict | None:
+def buscar_responsavel(login, senha):
     """Busca um responsável pelo login e senha para autenticação."""
     with conectar() as conn:
         registro = conn.execute(
@@ -127,7 +127,7 @@ def buscar_responsavel(login: str, senha: str) -> dict | None:
         return dict(registro) if registro else None
 
 
-def inserir_responsavel(nome: str, login: str = None, senha: str = "1234") -> int:
+def inserir_responsavel(nome, login=None, senha="1234"):
     """Insere um novo responsável e retorna o idresp gerado."""
     nome_limpo = nome.strip()
     login_final = login.strip() if login else nome_limpo
@@ -140,14 +140,14 @@ def inserir_responsavel(nome: str, login: str = None, senha: str = "1234") -> in
         return cursor.lastrowid
 
 
-def listar_responsaveis() -> list[dict]:
+def listar_responsaveis():
     """Retorna todos os responsáveis cadastrados em ordem alfabética."""
     with conectar() as conn:
         cursor = conn.execute("SELECT idresp, Nome, Login, Senha FROM Responsavel ORDER BY Nome")
         return [dict(linha) for linha in cursor.fetchall()]
 
 
-def buscar_responsavel_por_id(id_resp: int) -> dict | None:
+def buscar_responsavel_por_id(id_resp):
     """Busca um responsável pelo ID."""
     with conectar() as conn:
         cursor = conn.execute(
@@ -158,7 +158,7 @@ def buscar_responsavel_por_id(id_resp: int) -> dict | None:
         return dict(linha) if linha else None
 
 
-def editar_responsavel(id_resp: int, novo_nome: str = None, novo_login: str = None, nova_senha: str = None) -> bool:
+def editar_responsavel(id_resp, novo_nome=None, novo_login=None, nova_senha=None):
     """Atualiza os dados de um responsável."""
     atualizacoes = []
     parametros = []
@@ -185,7 +185,7 @@ def editar_responsavel(id_resp: int, novo_nome: str = None, novo_login: str = No
         return cursor.rowcount > 0
 
 
-def excluir_responsavel(id_resp: int) -> bool:
+def excluir_responsavel(id_resp):
     """Remove um responsável pelo ID."""
     with conectar() as conn:
         cursor = conn.execute(
@@ -200,7 +200,7 @@ def excluir_responsavel(id_resp: int) -> bool:
 # Operações SQL - Turma
 # ==============================================================================
 
-def inserir_turma(nome: str) -> int:
+def inserir_turma(nome):
     """Insere uma nova turma e retorna o idturma gerado."""
     with conectar() as conn:
         cursor = conn.execute(
@@ -211,14 +211,14 @@ def inserir_turma(nome: str) -> int:
         return cursor.lastrowid
 
 
-def listar_turmas() -> list[dict]:
+def listar_turmas():
     """Retorna todas as turmas cadastradas em ordem alfabética."""
     with conectar() as conn:
         cursor = conn.execute("SELECT idturma, Nome FROM Turma ORDER BY Nome")
         return [dict(linha) for linha in cursor.fetchall()]
 
 
-def buscar_turma_por_id(id_turma: int) -> dict | None:
+def buscar_turma_por_id(id_turma):
     """Busca uma turma pelo ID."""
     with conectar() as conn:
         cursor = conn.execute(
@@ -229,7 +229,7 @@ def buscar_turma_por_id(id_turma: int) -> dict | None:
         return dict(linha) if linha else None
 
 
-def editar_turma(id_turma: int, novo_nome: str) -> bool:
+def editar_turma(id_turma, novo_nome):
     """Atualiza o nome de uma turma."""
     with conectar() as conn:
         cursor = conn.execute(
@@ -240,7 +240,7 @@ def editar_turma(id_turma: int, novo_nome: str) -> bool:
         return cursor.rowcount > 0
 
 
-def excluir_turma(id_turma: int) -> bool:
+def excluir_turma(id_turma):
     """Remove uma turma pelo ID."""
     with conectar() as conn:
         cursor = conn.execute(
@@ -255,7 +255,7 @@ def excluir_turma(id_turma: int) -> bool:
 # Operações SQL - ResponsavelTurma (Vínculo N:N)
 # ==============================================================================
 
-def vincular_responsavel_turma(id_responsavel: int, id_turma: int) -> bool:
+def vincular_responsavel_turma(id_responsavel, id_turma):
     """Vincula um responsável a uma turma."""
     try:
         with conectar() as conn:
@@ -269,7 +269,7 @@ def vincular_responsavel_turma(id_responsavel: int, id_turma: int) -> bool:
         return False
 
 
-def desvincular_responsavel_turma(id_responsavel: int, id_turma: int) -> bool:
+def desvincular_responsavel_turma(id_responsavel, id_turma):
     """Remove o vínculo entre responsável e turma."""
     with conectar() as conn:
         cursor = conn.execute(
@@ -280,7 +280,7 @@ def desvincular_responsavel_turma(id_responsavel: int, id_turma: int) -> bool:
         return cursor.rowcount > 0
 
 
-def listar_turmas_do_responsavel(id_responsavel: int) -> list[dict]:
+def listar_turmas_do_responsavel(id_responsavel):
     """Retorna todas as turmas vinculadas ao responsável informado."""
     with conectar() as conn:
         cursor = conn.execute(
@@ -296,7 +296,7 @@ def listar_turmas_do_responsavel(id_responsavel: int) -> list[dict]:
         return [dict(linha) for linha in cursor.fetchall()]
 
 
-def listar_responsaveis_da_turma(id_turma: int) -> list[dict]:
+def listar_responsaveis_da_turma(id_turma):
     """Retorna todos os responsáveis vinculados a uma turma."""
     with conectar() as conn:
         cursor = conn.execute(
@@ -316,7 +316,7 @@ def listar_responsaveis_da_turma(id_turma: int) -> list[dict]:
 # Operações SQL - Imagem
 # ==============================================================================
 
-def inserir_imagem(caminho_relativo: str) -> int:
+def inserir_imagem(caminho_relativo):
     """Insere o caminho de uma imagem no banco e retorna o idImagem gerado."""
     with conectar() as conn:
         cursor = conn.execute(
@@ -327,7 +327,7 @@ def inserir_imagem(caminho_relativo: str) -> int:
         return cursor.lastrowid
 
 
-def buscar_imagem_por_id(id_imagem: int) -> dict | None:
+def buscar_imagem_por_id(id_imagem):
     """Busca uma imagem pelo ID."""
     with conectar() as conn:
         cursor = conn.execute(
@@ -338,14 +338,14 @@ def buscar_imagem_por_id(id_imagem: int) -> dict | None:
         return dict(linha) if linha else None
 
 
-def listar_imagens() -> list[dict]:
+def listar_imagens():
     """Lista todas as imagens cadastradas no banco."""
     with conectar() as conn:
         cursor = conn.execute("SELECT idImagem, Caminho AS caminho FROM Imagem ORDER BY idImagem DESC")
         return [dict(linha) for linha in cursor.fetchall()]
 
 
-def excluir_imagem(id_imagem: int) -> bool:
+def excluir_imagem(id_imagem):
     """Remove o registro da imagem no banco de dados."""
     with conectar() as conn:
         cursor = conn.execute(
@@ -360,7 +360,7 @@ def excluir_imagem(id_imagem: int) -> bool:
 # Operações SQL - Informativos
 # ==============================================================================
 
-def inserir_informativo(titulo: str, conteudo: str, id_admin: int, esta_fixado: int = 0, id_imagem: int = None) -> int:
+def inserir_informativo(titulo, conteudo, id_admin, esta_fixado=0, id_imagem=None):
     """Insere um novo informativo no banco e retorna o Idinfo gerado."""
     with conectar() as conn:
         cursor = conn.execute(
@@ -374,7 +374,7 @@ def inserir_informativo(titulo: str, conteudo: str, id_admin: int, esta_fixado: 
         return cursor.lastrowid
 
 
-def listar_informativos() -> list[dict]:
+def listar_informativos():
     """Lista todos os informativos ordenados por fixado e data de criação."""
     with conectar() as conn:
         cursor = conn.execute(
@@ -390,7 +390,7 @@ def listar_informativos() -> list[dict]:
         return [dict(linha) for linha in cursor.fetchall()]
 
 
-def buscar_informativo_por_id(id_info: int) -> dict | None:
+def buscar_informativo_por_id(id_info):
     """Busca um informativo específico pelo ID."""
     with conectar() as conn:
         linha = conn.execute(
@@ -407,7 +407,7 @@ def buscar_informativo_por_id(id_info: int) -> dict | None:
         return dict(linha) if linha else None
 
 
-def alterar_fixado_informativo(id_info: int) -> bool | None:
+def alterar_fixado_informativo(id_info):
     """Inverte o status de fixado (0 -> 1 ou 1 -> 0) de um informativo e retorna o novo status."""
     with conectar() as conn:
         linha = conn.execute(
@@ -427,7 +427,7 @@ def alterar_fixado_informativo(id_info: int) -> bool | None:
         return bool(novo_status)
 
 
-def editar_informativo(id_info: int, novo_titulo: str = None, novo_conteudo: str = None, id_imagem: int = None) -> bool:
+def editar_informativo(id_info, novo_titulo=None, novo_conteudo=None, id_imagem=None):
     """Atualiza título, conteúdo e/ou imagem de um informativo."""
     atualizacoes = []
     parametros = []
@@ -454,7 +454,7 @@ def editar_informativo(id_info: int, novo_titulo: str = None, novo_conteudo: str
         return cursor.rowcount > 0
 
 
-def excluir_informativo(id_info: int) -> bool:
+def excluir_informativo(id_info):
     """Remove um informativo pelo ID."""
     with conectar() as conn:
         cursor = conn.execute("DELETE FROM Informativos WHERE Idinfo = ?", (id_info,))
@@ -466,7 +466,7 @@ def excluir_informativo(id_info: int) -> bool:
 # Operações SQL - Projeto
 # ==============================================================================
 
-def inserir_projeto(titulo: str, conteudo: str, id_admin: int) -> int:
+def inserir_projeto(titulo, conteudo, id_admin):
     """Insere um novo projeto e retorna o idProjeto gerado."""
     with conectar() as conn:
         cursor = conn.execute(
@@ -480,7 +480,7 @@ def inserir_projeto(titulo: str, conteudo: str, id_admin: int) -> int:
         return cursor.lastrowid
 
 
-def listar_projetos() -> list[dict]:
+def listar_projetos():
     """Lista todos os projetos cadastrados."""
     with conectar() as conn:
         cursor = conn.execute(
@@ -494,7 +494,7 @@ def listar_projetos() -> list[dict]:
         return [dict(linha) for linha in cursor.fetchall()]
 
 
-def buscar_projeto_por_id(id_projeto: int) -> dict | None:
+def buscar_projeto_por_id(id_projeto):
     """Busca um projeto pelo ID."""
     with conectar() as conn:
         linha = conn.execute(
@@ -509,7 +509,7 @@ def buscar_projeto_por_id(id_projeto: int) -> dict | None:
         return dict(linha) if linha else None
 
 
-def editar_projeto(id_projeto: int, novo_titulo: str = None, novo_conteudo: str = None) -> bool:
+def editar_projeto(id_projeto, novo_titulo=None, novo_conteudo=None):
     """Atualiza o título e/ou conteúdo de um projeto."""
     atualizacoes = []
     parametros = []
@@ -533,7 +533,7 @@ def editar_projeto(id_projeto: int, novo_titulo: str = None, novo_conteudo: str 
         return cursor.rowcount > 0
 
 
-def excluir_projeto(id_projeto: int) -> bool:
+def excluir_projeto(id_projeto):
     """Remove um projeto pelo ID."""
     with conectar() as conn:
         cursor = conn.execute("DELETE FROM Projeto WHERE idProjeto = ?", (id_projeto,))
@@ -545,7 +545,7 @@ def excluir_projeto(id_projeto: int) -> bool:
 # Operações SQL - ImgProjeto (Vínculo N:N entre Imagem e Projeto)
 # ==============================================================================
 
-def vincular_imagem_projeto(id_imagem: int, id_projeto: int) -> bool:
+def vincular_imagem_projeto(id_imagem, id_projeto):
     """Vincula uma imagem a um projeto."""
     try:
         with conectar() as conn:
@@ -559,7 +559,7 @@ def vincular_imagem_projeto(id_imagem: int, id_projeto: int) -> bool:
         return False
 
 
-def desvincular_imagem_projeto(id_imagem: int, id_projeto: int) -> bool:
+def desvincular_imagem_projeto(id_imagem, id_projeto):
     """Remove o vínculo entre uma imagem e um projeto."""
     with conectar() as conn:
         cursor = conn.execute(
@@ -570,7 +570,7 @@ def desvincular_imagem_projeto(id_imagem: int, id_projeto: int) -> bool:
         return cursor.rowcount > 0
 
 
-def listar_imagens_do_projeto(id_projeto: int) -> list[dict]:
+def listar_imagens_do_projeto(id_projeto):
     """Retorna todas as imagens vinculadas a um projeto."""
     with conectar() as conn:
         cursor = conn.execute(
@@ -589,7 +589,7 @@ def listar_imagens_do_projeto(id_projeto: int) -> list[dict]:
 # Operações SQL - ProjetoTurma (Vínculo N:N entre Projeto e Turma)
 # ==============================================================================
 
-def vincular_projeto_turma(id_projeto: int, id_turma: int) -> bool:
+def vincular_projeto_turma(id_projeto, id_turma):
     """Vincula um projeto a uma turma."""
     try:
         with conectar() as conn:
@@ -603,7 +603,7 @@ def vincular_projeto_turma(id_projeto: int, id_turma: int) -> bool:
         return False
 
 
-def desvincular_projeto_turma(id_projeto: int, id_turma: int) -> bool:
+def desvincular_projeto_turma(id_projeto, id_turma):
     """Remove o vínculo entre um projeto e uma turma."""
     with conectar() as conn:
         cursor = conn.execute(
@@ -614,7 +614,7 @@ def desvincular_projeto_turma(id_projeto: int, id_turma: int) -> bool:
         return cursor.rowcount > 0
 
 
-def listar_turmas_do_projeto(id_projeto: int) -> list[dict]:
+def listar_turmas_do_projeto(id_projeto):
     """Retorna todas as turmas vinculadas a um projeto."""
     with conectar() as conn:
         cursor = conn.execute(
@@ -630,7 +630,7 @@ def listar_turmas_do_projeto(id_projeto: int) -> list[dict]:
         return [dict(linha) for linha in cursor.fetchall()]
 
 
-def listar_projetos_da_turma(id_turma: int) -> list[dict]:
+def listar_projetos_da_turma(id_turma):
     """Retorna todos os projetos vinculados a uma turma."""
     with conectar() as conn:
         cursor = conn.execute(

@@ -10,13 +10,14 @@ from banco import (
     excluir_imagem,
 )
 from modelos.imagem import Imagem
+from serializadores.serializador_imagem import SerializadorImagem
 
 PASTA_IMAGENS = PASTA / "imagens"
 
 
 class ControladoraImagem:
     @staticmethod
-    def salvar_imagem(caminho_origem: str) -> Imagem:
+    def salvar_imagem(caminho_origem):
         """
         Copia a imagem selecionada para a pasta 'imagens/' do projeto,
         registra o caminho relativo no banco e retorna o objeto Imagem desserializado.
@@ -31,12 +32,13 @@ class ControladoraImagem:
         destino = PASTA_IMAGENS / nome_unico
         shutil.copy(origem, destino)
 
-        caminho_relativo = f"imagens/{nome_unico}"
-        id_imagem = inserir_imagem(caminho_relativo)
-        return Imagem.desserializar(buscar_imagem_por_id(id_imagem))
+        nova_img = Imagem(caminho=f"imagens/{nome_unico}")
+        dados = SerializadorImagem.serializar(nova_img)
+        id_imagem = inserir_imagem(dados["caminho"])
+        return SerializadorImagem.desserializar(buscar_imagem_por_id(id_imagem))
 
     @classmethod
-    def selecionar_imagem(cls) -> Imagem | None:
+    def selecionar_imagem(cls):
         """Abre a janela de seleção de arquivo e salva a imagem."""
         try:
             janela = Tk()
@@ -55,15 +57,15 @@ class ControladoraImagem:
         return cls.salvar_imagem(caminho_img)
 
     @staticmethod
-    def buscar_por_id(id_imagem: int) -> Imagem | None:
-        return Imagem.desserializar(buscar_imagem_por_id(id_imagem))
+    def buscar_por_id(id_imagem):
+        return SerializadorImagem.desserializar(buscar_imagem_por_id(id_imagem))
 
     @staticmethod
-    def listar_todas() -> list[Imagem]:
-        return [Imagem.desserializar(linha) for linha in listar_imagens()]
+    def listar_todas():
+        return [SerializadorImagem.desserializar(linha) for linha in listar_imagens()]
 
     @classmethod
-    def excluir(cls, id_imagem: int) -> bool:
+    def excluir(cls, id_imagem):
         img = cls.buscar_por_id(id_imagem)
         if not img:
             return False
