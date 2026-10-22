@@ -1,7 +1,7 @@
 from modelos.projeto import Projeto
 
-
-class SerializadorProjeto:
+#esse código funciona como um tradutor de dados entre o mundo externo e o interior da aplicação
+class SerializadorProjeto:  #faz ponte entre o banco de dados e os abjetos python.
     @staticmethod
     def serializar(projeto):
         """Serializa o objeto Projeto para dicionário."""
@@ -16,7 +16,7 @@ class SerializadorProjeto:
         }
 
     @staticmethod
-    def desserializar(dados):
+    def desserializar(dados):    #faz o caminho inverso da serialização. 
         """Desserializa um dicionário/linha do banco em um objeto Projeto."""
         if not dados:
             return None
