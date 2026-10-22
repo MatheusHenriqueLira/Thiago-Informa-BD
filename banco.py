@@ -29,13 +29,13 @@ def criar_banco():
 
 
 # ==============================================================================
-# Operações SQL - Autenticação (Admin e Responsavel)
+# Operações SQL - Admin
 # ==============================================================================
 
-def buscar_admin(login, senha):
-    conexao = conectar()
-    try:
-        registro = conexao.execute(
+def buscar_admin(login: str, senha: str) -> dict | None:
+    """Busca um administrador pelo login e senha para autenticação."""
+    with conectar() as conn:
+        registro = conn.execute(
             """
             SELECT idAdmin, Nome, Login, Senha
             FROM Admin
@@ -43,84 +43,68 @@ def buscar_admin(login, senha):
             """,
             (login, senha),
         ).fetchone()
-
-        if registro:
-            return dict(registro)
-        return None
-    finally:
-        conexao.close()
+        return dict(registro) if registro else None
 
 
-def buscar_responsavel(login, senha):
-    conexao = conectar()
-    try:
-        registro = conexao.execute(
-            """
-            SELECT idresp, Nome, Login, Senha
-            FROM Responsavel
-            WHERE Login = ? AND Senha = ?
-            """,
-            (login, senha),
-        ).fetchone()
-
-        if registro:
-            return dict(registro)
-        return None
-    finally:
-        conexao.close()
-
-
-# ==============================================================================
-# Operações SQL - Turma
-# ==============================================================================
-
-def inserir_turma(nome: str) -> int:
-    """Insere uma nova turma e retorna o idturma gerado."""
+def inserir_admin(nome: str, login: str, senha: str) -> int:
+    """Insere um novo administrador e retorna o idAdmin gerado."""
     with conectar() as conn:
         cursor = conn.execute(
-            "INSERT INTO Turma (Nome) VALUES (?)",
-            (nome.strip(),)
+            "INSERT INTO Admin (Nome, Login, Senha) VALUES (?, ?, ?)",
+            (nome.strip(), login.strip(), senha),
         )
         conn.commit()
         return cursor.lastrowid
 
 
-def listar_turmas() -> list[dict]:
-    """Retorna todas as turmas cadastradas em ordem alfabética."""
+def listar_admins() -> list[dict]:
+    """Retorna todos os administradores cadastrados."""
     with conectar() as conn:
-        cursor = conn.execute("SELECT idturma, Nome FROM Turma ORDER BY Nome")
+        cursor = conn.execute("SELECT idAdmin, Nome, Login, Senha FROM Admin ORDER BY Nome")
         return [dict(linha) for linha in cursor.fetchall()]
 
 
-def buscar_turma_por_id(id_turma: int) -> dict | None:
-    """Busca uma turma pelo ID."""
+def buscar_admin_por_id(id_admin: int) -> dict | None:
+    """Busca um administrador pelo ID."""
     with conectar() as conn:
-        cursor = conn.execute(
-            "SELECT idturma, Nome FROM Turma WHERE idturma = ?",
-            (id_turma,)
-        )
-        linha = cursor.fetchone()
+        linha = conn.execute(
+            "SELECT idAdmin, Nome, Login, Senha FROM Admin WHERE idAdmin = ?",
+            (id_admin,),
+        ).fetchone()
         return dict(linha) if linha else None
 
 
-def editar_turma(id_turma: int, novo_nome: str) -> bool:
-    """Atualiza o nome de uma turma."""
+def editar_admin(id_admin: int, novo_nome: str = None, novo_login: str = None, nova_senha: str = None) -> bool:
+    """Atualiza os dados de um administrador."""
+    atualizacoes = []
+    parametros = []
+
+    if novo_nome:
+        atualizacoes.append("Nome = ?")
+        parametros.append(novo_nome.strip())
+    if novo_login:
+        atualizacoes.append("Login = ?")
+        parametros.append(novo_login.strip())
+    if nova_senha:
+        atualizacoes.append("Senha = ?")
+        parametros.append(nova_senha)
+
+    if not atualizacoes:
+        return False
+
+    parametros.append(id_admin)
+    sql = f"UPDATE Admin SET {', '.join(atualizacoes)} WHERE idAdmin = ?"
+
     with conectar() as conn:
-        cursor = conn.execute(
-            "UPDATE Turma SET Nome = ? WHERE idturma = ?",
-            (novo_nome.strip(), id_turma)
-        )
+        cursor = conn.execute(sql, tuple(parametros))
         conn.commit()
         return cursor.rowcount > 0
 
 
-def excluir_turma(id_turma: int) -> bool:
-    """Remove uma turma pelo ID."""
+def excluir_admin(id_admin: int) -> bool:
+    """Remove um administrador pelo ID."""
     with conectar() as conn:
-        cursor = conn.execute(
-            "DELETE FROM Turma WHERE idturma = ?",
-            (id_turma,)
-        )
+        cursor = conn.execute("DELETE FROM Admin WHERE idAdmin = ?", (id_admin,))
         conn.commit()
         return cursor.rowcount > 0
 
@@ -129,6 +113,20 @@ def excluir_turma(id_turma: int) -> bool:
 # Operações SQL - Responsavel
 # ==============================================================================
 
+def buscar_responsavel(login: str, senha: str) -> dict | None:
+    """Busca um responsável pelo login e senha para autenticação."""
+    with conectar() as conn:
+        registro = conn.execute(
+            """
+            SELECT idresp, Nome, Login, Senha
+            FROM Responsavel
+            WHERE Login = ? AND Senha = ?
+            """,
+            (login, senha),
+        ).fetchone()
+        return dict(registro) if registro else None
+
+
 def inserir_responsavel(nome: str, login: str = None, senha: str = "1234") -> int:
     """Insere um novo responsável e retorna o idresp gerado."""
     nome_limpo = nome.strip()
@@ -136,7 +134,7 @@ def inserir_responsavel(nome: str, login: str = None, senha: str = "1234") -> in
     with conectar() as conn:
         cursor = conn.execute(
             "INSERT INTO Responsavel (Nome, Login, Senha) VALUES (?, ?, ?)",
-            (nome_limpo, login_final, senha)
+            (nome_limpo, login_final, senha),
         )
         conn.commit()
         return cursor.lastrowid
@@ -154,19 +152,35 @@ def buscar_responsavel_por_id(id_resp: int) -> dict | None:
     with conectar() as conn:
         cursor = conn.execute(
             "SELECT idresp, Nome, Login, Senha FROM Responsavel WHERE idresp = ?",
-            (id_resp,)
+            (id_resp,),
         )
         linha = cursor.fetchone()
         return dict(linha) if linha else None
 
 
-def editar_responsavel(id_resp: int, novo_nome: str) -> bool:
-    """Atualiza o nome de um responsável."""
+def editar_responsavel(id_resp: int, novo_nome: str = None, novo_login: str = None, nova_senha: str = None) -> bool:
+    """Atualiza os dados de um responsável."""
+    atualizacoes = []
+    parametros = []
+
+    if novo_nome:
+        atualizacoes.append("Nome = ?")
+        parametros.append(novo_nome.strip())
+    if novo_login:
+        atualizacoes.append("Login = ?")
+        parametros.append(novo_login.strip())
+    if nova_senha:
+        atualizacoes.append("Senha = ?")
+        parametros.append(nova_senha)
+
+    if not atualizacoes:
+        return False
+
+    parametros.append(id_resp)
+    sql = f"UPDATE Responsavel SET {', '.join(atualizacoes)} WHERE idresp = ?"
+
     with conectar() as conn:
-        cursor = conn.execute(
-            "UPDATE Responsavel SET Nome = ? WHERE idresp = ?",
-            (novo_nome.strip(), id_resp)
-        )
+        cursor = conn.execute(sql, tuple(parametros))
         conn.commit()
         return cursor.rowcount > 0
 
@@ -176,14 +190,69 @@ def excluir_responsavel(id_resp: int) -> bool:
     with conectar() as conn:
         cursor = conn.execute(
             "DELETE FROM Responsavel WHERE idresp = ?",
-            (id_resp,)
+            (id_resp,),
         )
         conn.commit()
         return cursor.rowcount > 0
 
 
 # ==============================================================================
-# Operações SQL - ResponsavelTurma (Vínculo)
+# Operações SQL - Turma
+# ==============================================================================
+
+def inserir_turma(nome: str) -> int:
+    """Insere uma nova turma e retorna o idturma gerado."""
+    with conectar() as conn:
+        cursor = conn.execute(
+            "INSERT INTO Turma (Nome) VALUES (?)",
+            (nome.strip(),),
+        )
+        conn.commit()
+        return cursor.lastrowid
+
+
+def listar_turmas() -> list[dict]:
+    """Retorna todas as turmas cadastradas em ordem alfabética."""
+    with conectar() as conn:
+        cursor = conn.execute("SELECT idturma, Nome FROM Turma ORDER BY Nome")
+        return [dict(linha) for linha in cursor.fetchall()]
+
+
+def buscar_turma_por_id(id_turma: int) -> dict | None:
+    """Busca uma turma pelo ID."""
+    with conectar() as conn:
+        cursor = conn.execute(
+            "SELECT idturma, Nome FROM Turma WHERE idturma = ?",
+            (id_turma,),
+        )
+        linha = cursor.fetchone()
+        return dict(linha) if linha else None
+
+
+def editar_turma(id_turma: int, novo_nome: str) -> bool:
+    """Atualiza o nome de uma turma."""
+    with conectar() as conn:
+        cursor = conn.execute(
+            "UPDATE Turma SET Nome = ? WHERE idturma = ?",
+            (novo_nome.strip(), id_turma),
+        )
+        conn.commit()
+        return cursor.rowcount > 0
+
+
+def excluir_turma(id_turma: int) -> bool:
+    """Remove uma turma pelo ID."""
+    with conectar() as conn:
+        cursor = conn.execute(
+            "DELETE FROM Turma WHERE idturma = ?",
+            (id_turma,),
+        )
+        conn.commit()
+        return cursor.rowcount > 0
+
+
+# ==============================================================================
+# Operações SQL - ResponsavelTurma (Vínculo N:N)
 # ==============================================================================
 
 def vincular_responsavel_turma(id_responsavel: int, id_turma: int) -> bool:
@@ -192,7 +261,7 @@ def vincular_responsavel_turma(id_responsavel: int, id_turma: int) -> bool:
         with conectar() as conn:
             conn.execute(
                 "INSERT INTO ResponsavelTurma (idResponsavel, idTurma) VALUES (?, ?)",
-                (id_responsavel, id_turma)
+                (id_responsavel, id_turma),
             )
             conn.commit()
             return True
@@ -205,7 +274,7 @@ def desvincular_responsavel_turma(id_responsavel: int, id_turma: int) -> bool:
     with conectar() as conn:
         cursor = conn.execute(
             "DELETE FROM ResponsavelTurma WHERE idResponsavel = ? AND idTurma = ?",
-            (id_responsavel, id_turma)
+            (id_responsavel, id_turma),
         )
         conn.commit()
         return cursor.rowcount > 0
@@ -219,10 +288,26 @@ def listar_turmas_do_responsavel(id_responsavel: int) -> list[dict]:
             SELECT t.idturma, t.Nome
             FROM Turma t
             INNER JOIN ResponsavelTurma rt ON t.idturma = rt.idTurma
-            WHERE rt.idResponsavel = ? 
+            WHERE rt.idResponsavel = ?
             ORDER BY t.Nome
             """,
-            (id_responsavel,)
+            (id_responsavel,),
+        )
+        return [dict(linha) for linha in cursor.fetchall()]
+
+
+def listar_responsaveis_da_turma(id_turma: int) -> list[dict]:
+    """Retorna todos os responsáveis vinculados a uma turma."""
+    with conectar() as conn:
+        cursor = conn.execute(
+            """
+            SELECT r.idresp, r.Nome, r.Login
+            FROM Responsavel r
+            INNER JOIN ResponsavelTurma rt ON r.idresp = rt.idResponsavel
+            WHERE rt.idTurma = ?
+            ORDER BY r.Nome
+            """,
+            (id_turma,),
         )
         return [dict(linha) for linha in cursor.fetchall()]
 
@@ -236,7 +321,7 @@ def inserir_imagem(caminho_relativo: str) -> int:
     with conectar() as conn:
         cursor = conn.execute(
             "INSERT INTO Imagem (Caminho) VALUES (?)",
-            (caminho_relativo,)
+            (caminho_relativo,),
         )
         conn.commit()
         return cursor.lastrowid
@@ -247,10 +332,17 @@ def buscar_imagem_por_id(id_imagem: int) -> dict | None:
     with conectar() as conn:
         cursor = conn.execute(
             "SELECT idImagem, Caminho AS caminho FROM Imagem WHERE idImagem = ?",
-            (id_imagem,)
+            (id_imagem,),
         )
         linha = cursor.fetchone()
         return dict(linha) if linha else None
+
+
+def listar_imagens() -> list[dict]:
+    """Lista todas as imagens cadastradas no banco."""
+    with conectar() as conn:
+        cursor = conn.execute("SELECT idImagem, Caminho AS caminho FROM Imagem ORDER BY idImagem DESC")
+        return [dict(linha) for linha in cursor.fetchall()]
 
 
 def excluir_imagem(id_imagem: int) -> bool:
@@ -258,10 +350,301 @@ def excluir_imagem(id_imagem: int) -> bool:
     with conectar() as conn:
         cursor = conn.execute(
             "DELETE FROM Imagem WHERE idImagem = ?",
-            (id_imagem,)
+            (id_imagem,),
         )
         conn.commit()
         return cursor.rowcount > 0
+
+
+# ==============================================================================
+# Operações SQL - Informativos
+# ==============================================================================
+
+def inserir_informativo(titulo: str, conteudo: str, id_admin: int, esta_fixado: int = 0, id_imagem: int = None) -> int:
+    """Insere um novo informativo no banco e retorna o Idinfo gerado."""
+    with conectar() as conn:
+        cursor = conn.execute(
+            """
+            INSERT INTO Informativos (Titulo, Conteudo, idAdmin, estafixado, idImagem)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (titulo.strip(), conteudo, id_admin, 1 if esta_fixado else 0, id_imagem),
+        )
+        conn.commit()
+        return cursor.lastrowid
+
+
+def listar_informativos() -> list[dict]:
+    """Lista todos os informativos ordenados por fixado e data de criação."""
+    with conectar() as conn:
+        cursor = conn.execute(
+            """
+            SELECT i.Idinfo, i.Titulo, i.Conteudo, i.datacriacao, i.idAdmin,
+                   i.estafixado, i.idImagem, a.Nome AS NomeAdmin, img.Caminho AS CaminhoImagem
+            FROM Informativos i
+            LEFT JOIN Admin a ON i.idAdmin = a.idAdmin
+            LEFT JOIN Imagem img ON i.idImagem = img.idImagem
+            ORDER BY i.estafixado DESC, i.datacriacao DESC
+            """
+        )
+        return [dict(linha) for linha in cursor.fetchall()]
+
+
+def buscar_informativo_por_id(id_info: int) -> dict | None:
+    """Busca um informativo específico pelo ID."""
+    with conectar() as conn:
+        linha = conn.execute(
+            """
+            SELECT i.Idinfo, i.Titulo, i.Conteudo, i.datacriacao, i.idAdmin,
+                   i.estafixado, i.idImagem, a.Nome AS NomeAdmin, img.Caminho AS CaminhoImagem
+            FROM Informativos i
+            LEFT JOIN Admin a ON i.idAdmin = a.idAdmin
+            LEFT JOIN Imagem img ON i.idImagem = img.idImagem
+            WHERE i.Idinfo = ?
+            """,
+            (id_info,),
+        ).fetchone()
+        return dict(linha) if linha else None
+
+
+def alterar_fixado_informativo(id_info: int) -> bool | None:
+    """Inverte o status de fixado (0 -> 1 ou 1 -> 0) de um informativo e retorna o novo status."""
+    with conectar() as conn:
+        linha = conn.execute(
+            "SELECT estafixado FROM Informativos WHERE Idinfo = ?",
+            (id_info,),
+        ).fetchone()
+
+        if linha is None:
+            return None
+
+        novo_status = 1 if linha["estafixado"] == 0 else 0
+        conn.execute(
+            "UPDATE Informativos SET estafixado = ? WHERE Idinfo = ?",
+            (novo_status, id_info),
+        )
+        conn.commit()
+        return bool(novo_status)
+
+
+def editar_informativo(id_info: int, novo_titulo: str = None, novo_conteudo: str = None, id_imagem: int = None) -> bool:
+    """Atualiza título, conteúdo e/ou imagem de um informativo."""
+    atualizacoes = []
+    parametros = []
+
+    if novo_titulo:
+        atualizacoes.append("Titulo = ?")
+        parametros.append(novo_titulo.strip())
+    if novo_conteudo:
+        atualizacoes.append("Conteudo = ?")
+        parametros.append(novo_conteudo)
+    if id_imagem is not None:
+        atualizacoes.append("idImagem = ?")
+        parametros.append(id_imagem)
+
+    if not atualizacoes:
+        return False
+
+    parametros.append(id_info)
+    sql = f"UPDATE Informativos SET {', '.join(atualizacoes)} WHERE Idinfo = ?"
+
+    with conectar() as conn:
+        cursor = conn.execute(sql, tuple(parametros))
+        conn.commit()
+        return cursor.rowcount > 0
+
+
+def excluir_informativo(id_info: int) -> bool:
+    """Remove um informativo pelo ID."""
+    with conectar() as conn:
+        cursor = conn.execute("DELETE FROM Informativos WHERE Idinfo = ?", (id_info,))
+        conn.commit()
+        return cursor.rowcount > 0
+
+
+# ==============================================================================
+# Operações SQL - Projeto
+# ==============================================================================
+
+def inserir_projeto(titulo: str, conteudo: str, id_admin: int) -> int:
+    """Insere um novo projeto e retorna o idProjeto gerado."""
+    with conectar() as conn:
+        cursor = conn.execute(
+            """
+            INSERT INTO Projeto (Titulo, Conteudo, idAdmin)
+            VALUES (?, ?, ?)
+            """,
+            (titulo.strip(), conteudo, id_admin),
+        )
+        conn.commit()
+        return cursor.lastrowid
+
+
+def listar_projetos() -> list[dict]:
+    """Lista todos os projetos cadastrados."""
+    with conectar() as conn:
+        cursor = conn.execute(
+            """
+            SELECT p.idProjeto, p.datacriacao, p.Titulo, p.Conteudo, p.idAdmin, a.Nome AS NomeAdmin
+            FROM Projeto p
+            LEFT JOIN Admin a ON p.idAdmin = a.idAdmin
+            ORDER BY p.datacriacao DESC
+            """
+        )
+        return [dict(linha) for linha in cursor.fetchall()]
+
+
+def buscar_projeto_por_id(id_projeto: int) -> dict | None:
+    """Busca um projeto pelo ID."""
+    with conectar() as conn:
+        linha = conn.execute(
+            """
+            SELECT p.idProjeto, p.datacriacao, p.Titulo, p.Conteudo, p.idAdmin, a.Nome AS NomeAdmin
+            FROM Projeto p
+            LEFT JOIN Admin a ON p.idAdmin = a.idAdmin
+            WHERE p.idProjeto = ?
+            """,
+            (id_projeto,),
+        ).fetchone()
+        return dict(linha) if linha else None
+
+
+def editar_projeto(id_projeto: int, novo_titulo: str = None, novo_conteudo: str = None) -> bool:
+    """Atualiza o título e/ou conteúdo de um projeto."""
+    atualizacoes = []
+    parametros = []
+
+    if novo_titulo:
+        atualizacoes.append("Titulo = ?")
+        parametros.append(novo_titulo.strip())
+    if novo_conteudo:
+        atualizacoes.append("Conteudo = ?")
+        parametros.append(novo_conteudo)
+
+    if not atualizacoes:
+        return False
+
+    parametros.append(id_projeto)
+    sql = f"UPDATE Projeto SET {', '.join(atualizacoes)} WHERE idProjeto = ?"
+
+    with conectar() as conn:
+        cursor = conn.execute(sql, tuple(parametros))
+        conn.commit()
+        return cursor.rowcount > 0
+
+
+def excluir_projeto(id_projeto: int) -> bool:
+    """Remove um projeto pelo ID."""
+    with conectar() as conn:
+        cursor = conn.execute("DELETE FROM Projeto WHERE idProjeto = ?", (id_projeto,))
+        conn.commit()
+        return cursor.rowcount > 0
+
+
+# ==============================================================================
+# Operações SQL - ImgProjeto (Vínculo N:N entre Imagem e Projeto)
+# ==============================================================================
+
+def vincular_imagem_projeto(id_imagem: int, id_projeto: int) -> bool:
+    """Vincula uma imagem a um projeto."""
+    try:
+        with conectar() as conn:
+            conn.execute(
+                "INSERT INTO ImgProjeto (idImagem, idProjeto) VALUES (?, ?)",
+                (id_imagem, id_projeto),
+            )
+            conn.commit()
+            return True
+    except sqlite3.IntegrityError:
+        return False
+
+
+def desvincular_imagem_projeto(id_imagem: int, id_projeto: int) -> bool:
+    """Remove o vínculo entre uma imagem e um projeto."""
+    with conectar() as conn:
+        cursor = conn.execute(
+            "DELETE FROM ImgProjeto WHERE idImagem = ? AND idProjeto = ?",
+            (id_imagem, id_projeto),
+        )
+        conn.commit()
+        return cursor.rowcount > 0
+
+
+def listar_imagens_do_projeto(id_projeto: int) -> list[dict]:
+    """Retorna todas as imagens vinculadas a um projeto."""
+    with conectar() as conn:
+        cursor = conn.execute(
+            """
+            SELECT i.idImagem, i.Caminho AS caminho
+            FROM Imagem i
+            INNER JOIN ImgProjeto ip ON i.idImagem = ip.idImagem
+            WHERE ip.idProjeto = ?
+            """,
+            (id_projeto,),
+        )
+        return [dict(linha) for linha in cursor.fetchall()]
+
+
+# ==============================================================================
+# Operações SQL - ProjetoTurma (Vínculo N:N entre Projeto e Turma)
+# ==============================================================================
+
+def vincular_projeto_turma(id_projeto: int, id_turma: int) -> bool:
+    """Vincula um projeto a uma turma."""
+    try:
+        with conectar() as conn:
+            conn.execute(
+                "INSERT INTO ProjetoTurma (idProjeto, idTurma) VALUES (?, ?)",
+                (id_projeto, id_turma),
+            )
+            conn.commit()
+            return True
+    except sqlite3.IntegrityError:
+        return False
+
+
+def desvincular_projeto_turma(id_projeto: int, id_turma: int) -> bool:
+    """Remove o vínculo entre um projeto e uma turma."""
+    with conectar() as conn:
+        cursor = conn.execute(
+            "DELETE FROM ProjetoTurma WHERE idProjeto = ? AND idTurma = ?",
+            (id_projeto, id_turma),
+        )
+        conn.commit()
+        return cursor.rowcount > 0
+
+
+def listar_turmas_do_projeto(id_projeto: int) -> list[dict]:
+    """Retorna todas as turmas vinculadas a um projeto."""
+    with conectar() as conn:
+        cursor = conn.execute(
+            """
+            SELECT t.idturma, t.Nome
+            FROM Turma t
+            INNER JOIN ProjetoTurma pt ON t.idturma = pt.idTurma
+            WHERE pt.idProjeto = ?
+            ORDER BY t.Nome
+            """,
+            (id_projeto,),
+        )
+        return [dict(linha) for linha in cursor.fetchall()]
+
+
+def listar_projetos_da_turma(id_turma: int) -> list[dict]:
+    """Retorna todos os projetos vinculados a uma turma."""
+    with conectar() as conn:
+        cursor = conn.execute(
+            """
+            SELECT p.idProjeto, p.datacriacao, p.Titulo, p.Conteudo, p.idAdmin, a.Nome AS NomeAdmin
+            FROM Projeto p
+            INNER JOIN ProjetoTurma pt ON p.idProjeto = pt.idProjeto
+            LEFT JOIN Admin a ON p.idAdmin = a.idAdmin
+            WHERE pt.idTurma = ?
+            ORDER BY p.datacriacao DESC
+            """,
+            (id_turma,),
+        )
+        return [dict(linha) for linha in cursor.fetchall()]
 
 
 if __name__ == "__main__":
