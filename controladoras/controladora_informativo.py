@@ -15,30 +15,19 @@ class ControladoraInformativo:
     def __init__(self, conta_logada=True):
         self.conta_logada = conta_logada
 
-    @staticmethod
-    def obter_input(mensagem="Digite o valor: "):
-        return input(mensagem).strip()
-
     @classmethod
     def cadastrar_informativo(
         cls,
         id_admin,
-        titulo=None,
-        conteudo=None,
-        usar_dialogo_imagem=True,
+        titulo,
+        conteudo="",
+        id_imagem=None,
+        caminho_imagem=None,
     ):
-        if titulo is None:
-            titulo = cls.obter_input("Título do informativo: ")
-        if conteudo is None:
-            conteudo = cls.obter_input("Conteúdo do informativo: ")
-
-        id_imagem = None
-        if usar_dialogo_imagem:
-            resp_img = cls.obter_input("Deseja anexar uma imagem? (s/N): ").lower()
-            if resp_img == "s":
-                img = ControladoraImagem.selecionar_imagem()
-                if img:
-                    id_imagem = img.id_imagem
+        if id_imagem is None and caminho_imagem:
+            img = ControladoraImagem.salvar_imagem(caminho_imagem)
+            if img:
+                id_imagem = img.id_imagem
 
         novo_info = Informativo(
             titulo=titulo,
@@ -59,6 +48,10 @@ class ControladoraInformativo:
             esta_fixado=dados["estafixado"],
             id_imagem=dados["idImagem"],
         )
+        if id_gerado is None:
+            print("Erro ao cadastrar informativo (verifique os dados informados).")
+            return None
+
         print("Informativo cadastrado com sucesso!")
         return SerializadorInformativo.desserializar(buscar_informativo_por_id(id_gerado))
 
@@ -79,16 +72,12 @@ class ControladoraInformativo:
         return lista_objetos
 
     @classmethod
-    def editar_informativo(cls, id_info, novo_titulo=None, novo_conteudo=None):
-        if novo_titulo is None:
-            novo_titulo = cls.obter_input("Digite o novo título (deixe em branco para manter): ")
-        if novo_conteudo is None:
-            novo_conteudo = cls.obter_input("Digite o novo conteúdo (deixe em branco para manter): ")
-
+    def editar_informativo(cls, id_info, novo_titulo=None, novo_conteudo=None, id_imagem=None):
         atualizado = editar_informativo(
             id_info=id_info,
             novo_titulo=novo_titulo if novo_titulo else None,
             novo_conteudo=novo_conteudo if novo_conteudo else None,
+            id_imagem=id_imagem,
         )
         if atualizado:
             print("Informativo atualizado!")

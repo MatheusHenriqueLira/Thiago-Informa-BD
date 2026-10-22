@@ -38,9 +38,9 @@ class ControladoraImagem:
         return SerializadorImagem.desserializar(buscar_imagem_por_id(id_imagem))
 
     @classmethod
-    def selecionar_imagem(cls):
+    def selecionar_imagem(cls, caminho_img=None):
         """Abre a janela de seleção de arquivo e salva a imagem."""
-        try:
+        if not caminho_img:
             janela = Tk()
             janela.withdraw()
             caminho_img = filedialog.askopenfilename(
@@ -48,8 +48,6 @@ class ControladoraImagem:
                 filetypes=[("Imagens", "*.png *.jpg *.jpeg *.webp")],
             )
             janela.destroy()
-        except Exception:
-            caminho_img = input("Caminho da imagem (ou Enter para pular): ").strip()
 
         if not caminho_img:
             return None

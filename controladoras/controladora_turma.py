@@ -15,15 +15,8 @@ from serializadores.serializador_responsavel_turma import SerializadorResponsave
 
 
 class ControladoraTurma:
-    @staticmethod
-    def obter_input(mensagem="Digite o valor: "):
-        return input(mensagem).strip()
-
     @classmethod
-    def cadastrar_turma(cls, nome=None):
-        if nome is None:
-            nome = cls.obter_input("Nome da turma: ")
-
+    def cadastrar_turma(cls, nome):
         nova_turma = Turma(nome=nome)
         if not nova_turma.validar_dados():
             print("O nome da turma é obrigatório.")
@@ -31,6 +24,10 @@ class ControladoraTurma:
 
         dados = SerializadorTurma.serializar(nova_turma)
         id_turma = inserir_turma(dados["Nome"])
+        if id_turma is None:
+            print("Erro ao cadastrar: já existe uma turma com este nome.")
+            return None
+
         print("Turma cadastrada com sucesso!")
         return SerializadorTurma.desserializar(buscar_turma_por_id(id_turma))
 
@@ -48,17 +45,15 @@ class ControladoraTurma:
         return turmas
 
     @classmethod
-    def editar_turma(cls, id_turma, novo_nome=None):
-        if novo_nome is None:
-            novo_nome = cls.obter_input("Novo nome da turma: ")
-        if not novo_nome:
+    def editar_turma(cls, id_turma, novo_nome):
+        if not novo_nome or not novo_nome.strip():
             print("Nome inválido.")
             return None
 
         if editar_turma(id_turma, novo_nome):
             print("Turma atualizada com sucesso!")
         else:
-            print("Turma não encontrada.")
+            print("Não foi possível atualizar a turma (ID não encontrado ou nome já existente).")
 
         return SerializadorTurma.desserializar(buscar_turma_por_id(id_turma))
 

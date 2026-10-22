@@ -33,9 +33,25 @@ def ler_id(mensagem):
     return int(valor)
 
 
+def selecionar_imagem():
+    try:
+        return ControladoraImagem.selecionar_imagem()
+    except Exception:
+        caminho = input("Caminho da imagem (ou Enter para pular): ").strip()
+        if not caminho:
+            return None
+        try:
+            return ControladoraImagem.salvar_imagem(caminho)
+        except FileNotFoundError as e:
+            print(e)
+            return None
+
+
 def login():
+    usuario_login = input("Login: ").strip()
+    senha = input("Senha: ").strip()
     auth = ControladoraAutenticacao.obter_instancia()
-    return auth.executar_login()
+    return auth.executar_login(usuario_login, senha)
 
 
 # ==============================================================================
@@ -86,7 +102,20 @@ def menu_informativos_admin(usuario):
             pausar()
 
         elif opcao == "Cadastrar informativo":
-            ControladoraInformativo.cadastrar_informativo(usuario.id_admin)
+            titulo = input("Título do informativo: ").strip()
+            conteudo = input("Conteúdo do informativo: ").strip()
+            id_imagem = None
+            resp_img = input("Deseja anexar uma imagem? (s/N): ").strip().lower()
+            if resp_img == "s":
+                img = selecionar_imagem()
+                if img:
+                    id_imagem = img.id_imagem
+            ControladoraInformativo.cadastrar_informativo(
+                id_admin=usuario.id_admin,
+                titulo=titulo,
+                conteudo=conteudo,
+                id_imagem=id_imagem,
+            )
             pausar()
 
         elif opcao == "Editar informativo":
@@ -94,7 +123,13 @@ def menu_informativos_admin(usuario):
             if lista:
                 id_info = ler_id("\nDigite o ID do informativo que deseja editar: ")
                 if id_info is not None:
-                    ControladoraInformativo.editar_informativo(id_info)
+                    novo_titulo = input("Digite o novo título (deixe em branco para manter): ").strip()
+                    novo_conteudo = input("Digite o novo conteúdo (deixe em branco para manter): ").strip()
+                    ControladoraInformativo.editar_informativo(
+                        id_info,
+                        novo_titulo=novo_titulo or None,
+                        novo_conteudo=novo_conteudo or None,
+                    )
             pausar()
 
         elif opcao == "Fixar / Desafixar informativo":
@@ -166,23 +201,30 @@ def menu_projetos_admin(usuario):
             pausar()
 
         elif opcao == "Cadastrar projeto":
-            titulo = ControladoraProjetos.obter_input("Título do projeto: ")
-            conteudo = ControladoraProjetos.obter_input("Conteúdo/descrição do projeto: ")
+            titulo = input("Título do projeto: ").strip()
+            conteudo = input("Conteúdo/descrição do projeto: ").strip()
 
             id_turma = None
-            vincular = ControladoraProjetos.obter_input("Deseja vincular a uma turma agora? (s/N): ").lower()
+            vincular = input("Deseja vincular a uma turma agora? (s/N): ").strip().lower()
             if vincular == "s":
                 turmas = ControladoraTurma.listar_turmas()
                 if turmas:
                     id_turma = ler_id("Digite o ID da turma: ")
 
-            ControladoraProjetos.criar_projeto(
+            proj = ControladoraProjetos.criar_projeto(
                 id_admin=usuario.id_admin,
                 titulo=titulo,
                 conteudo=conteudo,
                 id_turma=id_turma,
-                usar_dialogo_imagem=True,
             )
+
+            if proj:
+                anexar = input("Deseja anexar uma imagem ao projeto? (s/N): ").strip().lower()
+                if anexar == "s":
+                    img = selecionar_imagem()
+                    if img:
+                        if ControladoraProjetos.vincular_imagem(proj.id_projeto, img.id_imagem):
+                            print("Imagem vinculada ao projeto com sucesso!")
             pausar()
 
         elif opcao == "Editar projeto":
@@ -190,7 +232,13 @@ def menu_projetos_admin(usuario):
             if lista:
                 id_proj = ler_id("\nDigite o ID do projeto que deseja editar: ")
                 if id_proj is not None:
-                    ControladoraProjetos.editar_projeto(id_proj)
+                    novo_titulo = input("Novo título do projeto (em branco para manter): ").strip()
+                    novo_conteudo = input("Novo conteúdo do projeto (em branco para manter): ").strip()
+                    ControladoraProjetos.editar_projeto(
+                        id_proj,
+                        novo_titulo=novo_titulo or None,
+                        novo_conteudo=novo_conteudo or None,
+                    )
             pausar()
 
         elif opcao == "Vincular projeto a uma turma":
@@ -254,7 +302,8 @@ def menu_turmas_admin():
             pausar()
 
         elif opcao == "Cadastrar turma":
-            ControladoraTurma.cadastrar_turma()
+            nome = input("Nome da turma: ").strip()
+            ControladoraTurma.cadastrar_turma(nome)
             pausar()
 
         elif opcao == "Editar turma":
@@ -262,7 +311,8 @@ def menu_turmas_admin():
             if turmas:
                 id_turma = ler_id("\nDigite o ID da turma que deseja editar: ")
                 if id_turma is not None:
-                    ControladoraTurma.editar_turma(id_turma)
+                    novo_nome = input("Novo nome da turma: ").strip()
+                    ControladoraTurma.editar_turma(id_turma, novo_nome)
             pausar()
 
         elif opcao == "Excluir turma":
@@ -327,7 +377,14 @@ def menu_responsaveis_admin():
             pausar()
 
         elif opcao == "Cadastrar responsável":
-            ControladoraResponsavel.cadastrar_responsavel()
+            nome = input("Nome do responsável: ").strip()
+            login_resp = input("Login do responsável (Enter para usar o nome): ").strip() or nome
+            senha_resp = input("Senha do responsável (Enter para '1234'): ").strip() or "1234"
+            ControladoraResponsavel.cadastrar_responsavel(
+                nome=nome,
+                login=login_resp,
+                senha=senha_resp,
+            )
             pausar()
 
         elif opcao == "Editar responsável":
@@ -335,7 +392,15 @@ def menu_responsaveis_admin():
             if lista:
                 id_resp = ler_id("\nDigite o ID do responsável que deseja editar: ")
                 if id_resp is not None:
-                    ControladoraResponsavel.editar_responsavel(id_resp)
+                    novo_nome = input("Novo nome (em branco para manter): ").strip()
+                    novo_login = input("Novo login (em branco para manter): ").strip()
+                    nova_senha = input("Nova senha (em branco para manter): ").strip()
+                    ControladoraResponsavel.editar_responsavel(
+                        id_resp,
+                        novo_nome=novo_nome or None,
+                        novo_login=novo_login or None,
+                        nova_senha=nova_senha or None,
+                    )
             pausar()
 
         elif opcao == "Excluir responsável":

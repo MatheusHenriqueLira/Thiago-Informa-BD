@@ -23,25 +23,16 @@ class ControladoraProjetos:
     def __init__(self, conta_logada=True):
         self.conta_logada = conta_logada
 
-    @staticmethod
-    def obter_input(mensagem="Digite o valor: "):
-        return input(mensagem).strip()
-
     @classmethod
     def criar_projeto(
         cls,
         id_admin,
-        titulo=None,
-        conteudo=None,
+        titulo,
+        conteudo="",
         id_turma=None,
         caminho_imagem=None,
-        usar_dialogo_imagem=False,
+        id_imagem=None,
     ):
-        if titulo is None:
-            titulo = cls.obter_input("Título do projeto: ")
-        if conteudo is None:
-            conteudo = cls.obter_input("Conteúdo/descrição do projeto: ")
-
         novo_projeto = Projeto(titulo=titulo, conteudo=conteudo, id_admin=id_admin)
         if not novo_projeto.validar_dados():
             print("Dados inválidos: o título do projeto e o administrador são obrigatórios.")
@@ -53,28 +44,20 @@ class ControladoraProjetos:
             conteudo=dados["Conteudo"],
             id_admin=dados["idAdmin"],
         )
+        if id_projeto is None:
+            print("Erro ao cadastrar projeto (verifique os dados informados).")
+            return None
 
         if id_turma is not None:
-            vinculo_turma = SerializadorProjetoTurma.serializar(
-                ProjetoTurma(id_projeto=id_projeto, id_turma=id_turma)
-            )
-            vincular_projeto_turma(vinculo_turma["idProjeto"], vinculo_turma["idTurma"])
+            cls.vincular_turma(id_projeto, id_turma)
+
+        if id_imagem is not None:
+            cls.vincular_imagem(id_projeto, id_imagem)
 
         if caminho_imagem:
             img = ControladoraImagem.salvar_imagem(caminho_imagem)
-            vinculo_img = SerializadorImgProjeto.serializar(
-                ImgProjeto(id_imagem=img.id_imagem, id_projeto=id_projeto)
-            )
-            vincular_imagem_projeto(vinculo_img["idImagem"], vinculo_img["idProjeto"])
-        elif usar_dialogo_imagem:
-            resp_img = cls.obter_input("Deseja anexar uma imagem ao projeto? (s/N): ").lower()
-            if resp_img == "s":
-                img = ControladoraImagem.selecionar_imagem()
-                if img:
-                    vinculo_img = SerializadorImgProjeto.serializar(
-                        ImgProjeto(id_imagem=img.id_imagem, id_projeto=id_projeto)
-                    )
-                    vincular_imagem_projeto(vinculo_img["idImagem"], vinculo_img["idProjeto"])
+            if img:
+                cls.vincular_imagem(id_projeto, img.id_imagem)
 
         print("Projeto cadastrado com sucesso!")
         return SerializadorProjeto.desserializar(buscar_projeto_por_id(id_projeto))
@@ -100,11 +83,6 @@ class ControladoraProjetos:
 
     @classmethod
     def editar_projeto(cls, id_projeto, novo_titulo=None, novo_conteudo=None):
-        if novo_titulo is None:
-            novo_titulo = cls.obter_input("Novo título do projeto (em branco para manter): ")
-        if novo_conteudo is None:
-            novo_conteudo = cls.obter_input("Novo conteúdo do projeto (em branco para manter): ")
-
         atualizado = editar_projeto(
             id_projeto=id_projeto,
             novo_titulo=novo_titulo if novo_titulo else None,
@@ -129,6 +107,13 @@ class ControladoraProjetos:
         else:
             print("Projeto não encontrado.")
         return excluido
+
+    @staticmethod
+    def vincular_imagem(id_projeto, id_imagem):
+        vinculo = SerializadorImgProjeto.serializar(
+            ImgProjeto(id_imagem=id_imagem, id_projeto=id_projeto)
+        )
+        return vincular_imagem_projeto(vinculo["idImagem"], vinculo["idProjeto"])
 
     @staticmethod
     def vincular_turma(id_projeto, id_turma):

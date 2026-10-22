@@ -19,12 +19,10 @@ class ControladoraAutenticacao:
             cls._instancia = cls()
         return cls._instancia
 
-    def executar_login(self, login=None, senha=None):
+    def executar_login(self, login, senha):
         """Realiza o login como Admin ou Responsavel usando banco.py e as classes serializadoras."""
-        if login is None:
-            login = input("Login: ").strip()
-        if senha is None:
-            senha = input("Senha: ").strip()
+        login = (login or "").strip()
+        senha = (senha or "").strip()
 
         dados_admin = buscar_admin(login, senha)
         if dados_admin:

@@ -48,13 +48,16 @@ def buscar_admin(login, senha):
 
 def inserir_admin(nome, login, senha):
     """Insere um novo administrador e retorna o idAdmin gerado."""
-    with conectar() as conn:
-        cursor = conn.execute(
-            "INSERT INTO Admin (Nome, Login, Senha) VALUES (?, ?, ?)",
-            (nome.strip(), login.strip(), senha),
-        )
-        conn.commit()
-        return cursor.lastrowid
+    try:
+        with conectar() as conn:
+            cursor = conn.execute(
+                "INSERT INTO Admin (Nome, Login, Senha) VALUES (?, ?, ?)",
+                (nome.strip(), login.strip(), senha),
+            )
+            conn.commit()
+            return cursor.lastrowid
+    except sqlite3.IntegrityError:
+        return None
 
 
 def listar_admins():
@@ -95,10 +98,13 @@ def editar_admin(id_admin, novo_nome=None, novo_login=None, nova_senha=None):
     parametros.append(id_admin)
     sql = f"UPDATE Admin SET {', '.join(atualizacoes)} WHERE idAdmin = ?"
 
-    with conectar() as conn:
-        cursor = conn.execute(sql, tuple(parametros))
-        conn.commit()
-        return cursor.rowcount > 0
+    try:
+        with conectar() as conn:
+            cursor = conn.execute(sql, tuple(parametros))
+            conn.commit()
+            return cursor.rowcount > 0
+    except sqlite3.IntegrityError:
+        return False
 
 
 def excluir_admin(id_admin):
@@ -131,13 +137,16 @@ def inserir_responsavel(nome, login=None, senha="1234"):
     """Insere um novo responsável e retorna o idresp gerado."""
     nome_limpo = nome.strip()
     login_final = login.strip() if login else nome_limpo
-    with conectar() as conn:
-        cursor = conn.execute(
-            "INSERT INTO Responsavel (Nome, Login, Senha) VALUES (?, ?, ?)",
-            (nome_limpo, login_final, senha),
-        )
-        conn.commit()
-        return cursor.lastrowid
+    try:
+        with conectar() as conn:
+            cursor = conn.execute(
+                "INSERT INTO Responsavel (Nome, Login, Senha) VALUES (?, ?, ?)",
+                (nome_limpo, login_final, senha),
+            )
+            conn.commit()
+            return cursor.lastrowid
+    except sqlite3.IntegrityError:
+        return None
 
 
 def listar_responsaveis():
@@ -179,10 +188,13 @@ def editar_responsavel(id_resp, novo_nome=None, novo_login=None, nova_senha=None
     parametros.append(id_resp)
     sql = f"UPDATE Responsavel SET {', '.join(atualizacoes)} WHERE idresp = ?"
 
-    with conectar() as conn:
-        cursor = conn.execute(sql, tuple(parametros))
-        conn.commit()
-        return cursor.rowcount > 0
+    try:
+        with conectar() as conn:
+            cursor = conn.execute(sql, tuple(parametros))
+            conn.commit()
+            return cursor.rowcount > 0
+    except sqlite3.IntegrityError:
+        return False
 
 
 def excluir_responsavel(id_resp):
@@ -202,13 +214,16 @@ def excluir_responsavel(id_resp):
 
 def inserir_turma(nome):
     """Insere uma nova turma e retorna o idturma gerado."""
-    with conectar() as conn:
-        cursor = conn.execute(
-            "INSERT INTO Turma (Nome) VALUES (?)",
-            (nome.strip(),),
-        )
-        conn.commit()
-        return cursor.lastrowid
+    try:
+        with conectar() as conn:
+            cursor = conn.execute(
+                "INSERT INTO Turma (Nome) VALUES (?)",
+                (nome.strip(),),
+            )
+            conn.commit()
+            return cursor.lastrowid
+    except sqlite3.IntegrityError:
+        return None
 
 
 def listar_turmas():
@@ -231,13 +246,16 @@ def buscar_turma_por_id(id_turma):
 
 def editar_turma(id_turma, novo_nome):
     """Atualiza o nome de uma turma."""
-    with conectar() as conn:
-        cursor = conn.execute(
-            "UPDATE Turma SET Nome = ? WHERE idturma = ?",
-            (novo_nome.strip(), id_turma),
-        )
-        conn.commit()
-        return cursor.rowcount > 0
+    try:
+        with conectar() as conn:
+            cursor = conn.execute(
+                "UPDATE Turma SET Nome = ? WHERE idturma = ?",
+                (novo_nome.strip(), id_turma),
+            )
+            conn.commit()
+            return cursor.rowcount > 0
+    except sqlite3.IntegrityError:
+        return False
 
 
 def excluir_turma(id_turma):
@@ -318,13 +336,16 @@ def listar_responsaveis_da_turma(id_turma):
 
 def inserir_imagem(caminho_relativo):
     """Insere o caminho de uma imagem no banco e retorna o idImagem gerado."""
-    with conectar() as conn:
-        cursor = conn.execute(
-            "INSERT INTO Imagem (Caminho) VALUES (?)",
-            (caminho_relativo,),
-        )
-        conn.commit()
-        return cursor.lastrowid
+    try:
+        with conectar() as conn:
+            cursor = conn.execute(
+                "INSERT INTO Imagem (Caminho) VALUES (?)",
+                (caminho_relativo,),
+            )
+            conn.commit()
+            return cursor.lastrowid
+    except sqlite3.IntegrityError:
+        return None
 
 
 def buscar_imagem_por_id(id_imagem):
@@ -362,16 +383,19 @@ def excluir_imagem(id_imagem):
 
 def inserir_informativo(titulo, conteudo, id_admin, esta_fixado=0, id_imagem=None):
     """Insere um novo informativo no banco e retorna o Idinfo gerado."""
-    with conectar() as conn:
-        cursor = conn.execute(
-            """
-            INSERT INTO Informativos (Titulo, Conteudo, idAdmin, estafixado, idImagem)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (titulo.strip(), conteudo, id_admin, 1 if esta_fixado else 0, id_imagem),
-        )
-        conn.commit()
-        return cursor.lastrowid
+    try:
+        with conectar() as conn:
+            cursor = conn.execute(
+                """
+                INSERT INTO Informativos (Titulo, Conteudo, idAdmin, estafixado, idImagem)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (titulo.strip(), conteudo, id_admin, 1 if esta_fixado else 0, id_imagem),
+            )
+            conn.commit()
+            return cursor.lastrowid
+    except sqlite3.IntegrityError:
+        return None
 
 
 def listar_informativos():
@@ -468,16 +492,19 @@ def excluir_informativo(id_info):
 
 def inserir_projeto(titulo, conteudo, id_admin):
     """Insere um novo projeto e retorna o idProjeto gerado."""
-    with conectar() as conn:
-        cursor = conn.execute(
-            """
-            INSERT INTO Projeto (Titulo, Conteudo, idAdmin)
-            VALUES (?, ?, ?)
-            """,
-            (titulo.strip(), conteudo, id_admin),
-        )
-        conn.commit()
-        return cursor.lastrowid
+    try:
+        with conectar() as conn:
+            cursor = conn.execute(
+                """
+                INSERT INTO Projeto (Titulo, Conteudo, idAdmin)
+                VALUES (?, ?, ?)
+                """,
+                (titulo.strip(), conteudo, id_admin),
+            )
+            conn.commit()
+            return cursor.lastrowid
+    except sqlite3.IntegrityError:
+        return None
 
 
 def listar_projetos():

@@ -12,12 +12,14 @@ class Projeto:
         id_admin=None,
         caminho_imagem="",
         nome_admin=None,
+        imagens=None,
     ):
         self.id_projeto = id_projeto
         self.titulo = titulo
         self.conteudo = conteudo
         self.data_criacao = data_criacao
         self.id_admin = id_admin
+        self.imagens = imagens if imagens is not None else []
         self.caminho_imagem = caminho_imagem
         self.nome_admin = nome_admin
 
