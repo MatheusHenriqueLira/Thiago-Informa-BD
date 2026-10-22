@@ -20,7 +20,6 @@ class ControladoraAutenticacao:
         return cls._instancia
 
     def executar_login(self, login, senha):
-        """Realiza o login como Admin ou Responsavel usando banco.py e as classes serializadoras."""
         login = (login or "").strip()
         senha = (senha or "").strip()
 
