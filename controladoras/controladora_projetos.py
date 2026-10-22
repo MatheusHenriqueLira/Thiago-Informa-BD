@@ -35,6 +35,7 @@ class ControladoraProjetos:
         conteudo=None,
         id_turma=None,
         caminho_imagem=None,
+        usar_dialogo_imagem=False,
     ):
         if titulo is None:
             titulo = cls.obter_input("Título do projeto: ")
@@ -65,6 +66,15 @@ class ControladoraProjetos:
                 ImgProjeto(id_imagem=img.id_imagem, id_projeto=id_projeto)
             )
             vincular_imagem_projeto(vinculo_img["idImagem"], vinculo_img["idProjeto"])
+        elif usar_dialogo_imagem:
+            resp_img = cls.obter_input("Deseja anexar uma imagem ao projeto? (s/N): ").lower()
+            if resp_img == "s":
+                img = ControladoraImagem.selecionar_imagem()
+                if img:
+                    vinculo_img = SerializadorImgProjeto.serializar(
+                        ImgProjeto(id_imagem=img.id_imagem, id_projeto=id_projeto)
+                    )
+                    vincular_imagem_projeto(vinculo_img["idImagem"], vinculo_img["idProjeto"])
 
         print("Projeto cadastrado com sucesso!")
         return SerializadorProjeto.desserializar(buscar_projeto_por_id(id_projeto))
@@ -83,7 +93,8 @@ class ControladoraProjetos:
             print("Nenhum projeto encontrado.")
         for proj in objetos:
             autor = proj.nome_admin or proj.id_admin
-            print(f"[{proj.id_projeto}] {proj.titulo} | Autor: {autor} | Data: {proj.data_criacao}")
+            img = proj.caminho_imagem or "Sem imagem"
+            print(f"[{proj.id_projeto}] {proj.titulo} | Autor: {autor} | Data: {proj.data_criacao} | Imagem: {img}")
 
         return objetos
 

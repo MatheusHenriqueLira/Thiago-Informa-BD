@@ -159,6 +159,7 @@ def menu_projetos_admin(usuario):
                         print(f"\nTítulo: {escolhido.titulo}")
                         print(f"Autor: {escolhido.nome_admin or escolhido.id_admin}")
                         print(f"Data: {escolhido.data_criacao}")
+                        print(f"Imagem: {escolhido.caminho_imagem or 'Sem imagem'}")
                         print(f"Conteúdo:\n{escolhido.conteudo}")
                     else:
                         print("Projeto não encontrado.")
@@ -175,21 +176,13 @@ def menu_projetos_admin(usuario):
                 if turmas:
                     id_turma = ler_id("Digite o ID da turma: ")
 
-            proj = ControladoraProjetos.criar_projeto(
+            ControladoraProjetos.criar_projeto(
                 id_admin=usuario.id_admin,
                 titulo=titulo,
                 conteudo=conteudo,
                 id_turma=id_turma,
+                usar_dialogo_imagem=True,
             )
-
-            if proj:
-                anexar = ControladoraProjetos.obter_input("Deseja anexar uma imagem ao projeto? (s/N): ").lower()
-                if anexar == "s":
-                    img = ControladoraImagem.selecionar_imagem()
-                    if img:
-                        from banco import vincular_imagem_projeto
-                        vincular_imagem_projeto(img.id_imagem, proj.id_projeto)
-                        print("Imagem vinculada ao projeto com sucesso!")
             pausar()
 
         elif opcao == "Editar projeto":
@@ -458,6 +451,7 @@ def exibir_menu_responsavel(usuario):
                         status = "FIXADO" if escolhido.esta_fixado else "Normal"
                         print(f"\nTítulo: {escolhido.titulo} ({status})")
                         print(f"Autor: {escolhido.nome_admin or escolhido.id_admin} | Data: {escolhido.data_criacao}")
+                        print(f"Imagem: {escolhido.caminho_imagem or 'Sem imagem'}")
                         print(f"Conteúdo:\n{escolhido.conteudo}")
                     else:
                         print("Informativo não encontrado.")
@@ -485,6 +479,7 @@ def exibir_menu_responsavel(usuario):
                     if escolhido:
                         print(f"\nTítulo: {escolhido.titulo}")
                         print(f"Autor: {escolhido.nome_admin or escolhido.id_admin} | Data: {escolhido.data_criacao}")
+                        print(f"Imagem: {escolhido.caminho_imagem or 'Sem imagem'}")
                         print(f"Conteúdo:\n{escolhido.conteudo}")
                     else:
                         print("Projeto não encontrado.")

@@ -73,7 +73,8 @@ class ControladoraInformativo:
         for obj in lista_objetos:
             status = "FIXADO" if obj.esta_fixado else "Normal"
             autor = obj.nome_admin or obj.id_admin
-            print(f"[{obj.id_info}] {obj.titulo} | {status} | Autor: {autor} | Data: {obj.data_criacao}")
+            img = obj.caminho_imagem or "Sem imagem"
+            print(f"[{obj.id_info}] {obj.titulo} | {status} | Autor: {autor} | Data: {obj.data_criacao} | Imagem: {img}")
 
         return lista_objetos
 

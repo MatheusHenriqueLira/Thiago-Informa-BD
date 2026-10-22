@@ -485,9 +485,13 @@ def listar_projetos():
     with conectar() as conn:
         cursor = conn.execute(
             """
-            SELECT p.idProjeto, p.datacriacao, p.Titulo, p.Conteudo, p.idAdmin, a.Nome AS NomeAdmin
+            SELECT p.idProjeto, p.datacriacao, p.Titulo, p.Conteudo, p.idAdmin,
+                   a.Nome AS NomeAdmin, GROUP_CONCAT(img.Caminho, ', ') AS CaminhoImagem
             FROM Projeto p
             LEFT JOIN Admin a ON p.idAdmin = a.idAdmin
+            LEFT JOIN ImgProjeto ip ON p.idProjeto = ip.idProjeto
+            LEFT JOIN Imagem img ON ip.idImagem = img.idImagem
+            GROUP BY p.idProjeto
             ORDER BY p.datacriacao DESC
             """
         )
@@ -499,14 +503,20 @@ def buscar_projeto_por_id(id_projeto):
     with conectar() as conn:
         linha = conn.execute(
             """
-            SELECT p.idProjeto, p.datacriacao, p.Titulo, p.Conteudo, p.idAdmin, a.Nome AS NomeAdmin
+            SELECT p.idProjeto, p.datacriacao, p.Titulo, p.Conteudo, p.idAdmin,
+                   a.Nome AS NomeAdmin, GROUP_CONCAT(img.Caminho, ', ') AS CaminhoImagem
             FROM Projeto p
             LEFT JOIN Admin a ON p.idAdmin = a.idAdmin
+            LEFT JOIN ImgProjeto ip ON p.idProjeto = ip.idProjeto
+            LEFT JOIN Imagem img ON ip.idImagem = img.idImagem
             WHERE p.idProjeto = ?
+            GROUP BY p.idProjeto
             """,
             (id_projeto,),
         ).fetchone()
-        return dict(linha) if linha else None
+        if linha and linha["idProjeto"] is not None:
+            return dict(linha)
+        return None
 
 
 def editar_projeto(id_projeto, novo_titulo=None, novo_conteudo=None):
@@ -635,11 +645,15 @@ def listar_projetos_da_turma(id_turma):
     with conectar() as conn:
         cursor = conn.execute(
             """
-            SELECT p.idProjeto, p.datacriacao, p.Titulo, p.Conteudo, p.idAdmin, a.Nome AS NomeAdmin
+            SELECT p.idProjeto, p.datacriacao, p.Titulo, p.Conteudo, p.idAdmin,
+                   a.Nome AS NomeAdmin, GROUP_CONCAT(img.Caminho, ', ') AS CaminhoImagem
             FROM Projeto p
             INNER JOIN ProjetoTurma pt ON p.idProjeto = pt.idProjeto
             LEFT JOIN Admin a ON p.idAdmin = a.idAdmin
+            LEFT JOIN ImgProjeto ip ON p.idProjeto = ip.idProjeto
+            LEFT JOIN Imagem img ON ip.idImagem = img.idImagem
             WHERE pt.idTurma = ?
+            GROUP BY p.idProjeto
             ORDER BY p.datacriacao DESC
             """,
             (id_turma,),
